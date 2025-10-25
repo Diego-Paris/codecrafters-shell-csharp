@@ -23,7 +23,7 @@ class Program
 
             foreach (var dir in directories)
             {
-                var fullPath = Path.Combine(dir, $"{command}.exe");
+                var fullPath = Path.Combine(dir, $"{command}");
                 if (File.Exists(fullPath))
                 {
                     Console.WriteLine($"{command} is {fullPath}");
