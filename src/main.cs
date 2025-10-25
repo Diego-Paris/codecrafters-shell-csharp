@@ -11,14 +11,7 @@ class Program
                 var exitCode = args.Length > 0 && int.TryParse(args[0], out var code) ? code : 0;
                 Environment.Exit(exitCode);
             }},
-            { "echo", words => {
-                var message = new StringBuilder();
-                foreach (var word in words)
-                {
-                    message.Append(word).Append(' ');
-                }
-                Console.WriteLine(message);
-            }},
+            { "echo", words => Console.WriteLine(string.Join(' ', words)) },
         };
 
         while (true)
