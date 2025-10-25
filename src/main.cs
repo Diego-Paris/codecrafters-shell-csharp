@@ -16,7 +16,7 @@ class Program
 
         commands["type"] = args =>
         {
-            Console.WriteLine(commands.ContainsKey(args[0]) && args.Length == 1 ? $"{args[0]} is a builtin" : $"{args[0]}: not found");
+            Console.WriteLine(commands.ContainsKey(args[0]) && args.Length == 1 ? $"{args[0]} is a shell builtin" : $"{args[0]}: not found");
         };
 
         while (true)
