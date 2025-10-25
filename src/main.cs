@@ -20,7 +20,7 @@ class Program
             var envPath = Environment.GetEnvironmentVariable("PATH");
 
             var directories = envPath?.Split(Path.PathSeparator) ?? Array.Empty<string>();
-
+            Array.Reverse(directories);
             foreach (var dir in directories)
             {
                 var fullPath = Path.Combine(dir, $"{command}");
