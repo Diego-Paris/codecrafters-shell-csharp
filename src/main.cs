@@ -16,7 +16,24 @@ class Program
 
         commands["type"] = args =>
         {
-            Console.WriteLine(commands.ContainsKey(args[0]) && args.Length == 1 ? $"{args[0]} is a shell builtin" : $"{args[0]}: not found");
+            var command = args[0];
+            var envPath = Environment.GetEnvironmentVariable("PATH");
+
+            var directories = envPath?.Split(Path.PathSeparator) ?? Array.Empty<string>();
+
+            foreach (var dir in directories)
+            {
+                var fullPath = Path.Combine(dir, $"{command}.exe");
+                if (File.Exists(fullPath))
+                {
+                    Console.WriteLine($"{command} is {fullPath}");
+                    return;
+                }
+            }
+
+            Console.WriteLine(commands.ContainsKey(command) && args.Length == 1 ? $"{command} is a shell builtin" : $"{command}: not found");
+
+
         };
 
         while (true)
