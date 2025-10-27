@@ -16,46 +16,37 @@ public class ExternalCommand : ICommand
             return 2;
         }
 
-        var name = args[0];
-        var rest = args.Skip(1).ToArray();
+        var userInput = args[0];
+        var additionalArgs = args.Skip(1).ToArray();
 
-        string? target =
-            name.IndexOfAny(new[] { '\\', '/', ':' }) >= 0 ? name
-            : ctx.PathResolver.FindInPath(name);
+        var resolvedPath = userInput.IndexOfAny(new[] { '\\', '/', ':' }) >= 0
+            ? userInput
+            : ctx.PathResolver.FindInPath(userInput);
 
-        if (target is null)
+        if (resolvedPath is null)
         {
-            ctx.Out.WriteLine($"{name}: not found");
+            ctx.Out.WriteLine($"{userInput}: not found");
             return 127;
         }
 
-        // Detect .bat/.cmd scripts and run them via cmd.exe /c,
-        // otherwise launch executables directly
-        var ext = Path.GetExtension(target)
-            .ToLowerInvariant();
-        var isCmdScript = ext is ".cmd" or ".bat";
-        var fileName = isCmdScript
+        var isWindows = OperatingSystem.IsWindows();
+        var extension = isWindows ? Path.GetExtension(resolvedPath).ToLowerInvariant() : string.Empty;
+        var isBatchScript = isWindows && (extension is ".cmd" or ".bat");
+
+        var executable = isBatchScript
             ? Environment.GetEnvironmentVariable("ComSpec") ?? "cmd.exe"
-            : target;
+            : (userInput.Contains(Path.DirectorySeparatorChar) ? resolvedPath : userInput);
 
-        var joinedArgs = string.Join(' ', rest.Select(QuoteIfNeeded));
-        var arguments = isCmdScript
-            ? $"/c \"{target}\"{(joinedArgs.Length > 0 ? " " + joinedArgs : "")}"
+        var joinedArgs = string.Join(' ', additionalArgs.Select(QuoteIfNeeded));
+        var finalArgs = isBatchScript
+            ? $"/c \"{resolvedPath}\"{(joinedArgs.Length > 0 ? " " + joinedArgs : "")}"
             : joinedArgs;
-
-        if (target is null || (!Path.IsPathRooted(target) && ctx.PathResolver.FindInPath(name) is null))
-        {
-            ctx.Out.WriteLine($"{name}: not found");
-            return 127;
-        }
 
         try
         {
             using var process = new Process();
-            process.StartInfo.FileName = fileName;
-            process.StartInfo.Arguments = arguments;
-
-            // Share the current console (interactive works)
+            process.StartInfo.FileName = executable;
+            process.StartInfo.Arguments = finalArgs;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardInput = false;
             process.StartInfo.RedirectStandardOutput = false;
@@ -73,11 +64,11 @@ public class ExternalCommand : ICommand
         }
     }
 
-    private static string QuoteIfNeeded(string s)
+    private static string QuoteIfNeeded(string arg)
     {
-        if (string.IsNullOrEmpty(s)) return "\"\"";
-        if (s.Any(char.IsWhiteSpace) || s.Contains('"'))
-            return $"\"{s.Replace("\"", "\\\"")}\"";
-        return s;
+        if (string.IsNullOrEmpty(arg)) return "\"\"";
+        if (arg.Any(char.IsWhiteSpace) || arg.Contains('"'))
+            return $"\"{arg.Replace("\"", "\\\"")}\"";
+        return arg;
     }
 }
