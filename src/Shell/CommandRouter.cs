@@ -14,8 +14,12 @@ public sealed class CommandRouter
         if (parts.Count == 0) return 0;
 
         var name = parts[0];
+
         if (_ctx.Commands.TryGetValue(name, out var cmd))
             return cmd.Execute(parts.Skip(1).ToArray(), _ctx);
+
+        if (_ctx.Commands.TryGetValue("external", out var external))
+            return external.Execute(parts.ToArray(), _ctx);
 
         _ctx.Out.WriteLine($"{name}: command not found");
         return 127;

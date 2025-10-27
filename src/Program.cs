@@ -15,6 +15,7 @@ services.AddSingleton<ICommand, EchoCommand>();
 services.AddSingleton<ICommand, ExitCommand>();
 services.AddSingleton<ICommand, GreetCommand>();
 services.AddSingleton<ICommand, TypeCommand>();
+services.AddSingleton<ICommand, ExternalCommand>();
 
 // shell
 services.AddSingleton<CommandRouter>();
