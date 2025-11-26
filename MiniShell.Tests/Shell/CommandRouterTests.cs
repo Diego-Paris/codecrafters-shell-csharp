@@ -85,11 +85,11 @@ public class CommandRouterTests
     [Theory]
     [InlineData("echo test\\nvalue", new[] { "echo", "testnvalue" })]
     [InlineData("echo \\$HOME", new[] { "echo", "$HOME" })]
-    [InlineData("cat \"/tmp/rat/f\\\\n58\"", new[] { "cat", "/tmp/rat/f\\n58" })]
-    [InlineData("cat \"/tmp/rat/f\\\\60\"", new[] { "cat", "/tmp/rat/f\\60" })]
-    [InlineData("cat \"/tmp/rat/f'\\\\20\"", new[] { "cat", "/tmp/rat/f'\\20" })]
+    [InlineData("echo hello\\ \\ \\ \\ \\ \\ shell", new[] { "echo", "hello      shell" })]
+    [InlineData("echo test\\nworld", new[] { "echo", "testnworld" })]
+    [InlineData("cat \"/tmp/pig/f\\n24\" \"/tmp/pig/f\\56\" \"/tmp/pig/f'\\'4\"", new[] { "cat", "/tmp/pig/f\\n24", "/tmp/pig/f\\56", "/tmp/pig/f'\\4" })]
     [InlineData("cat \"/tmp/rat/f\\\\n58\" \"/tmp/rat/f\\\\60\" \"/tmp/rat/f'\\\\20\"", new[] { "cat", "/tmp/rat/f\\n58", "/tmp/rat/f\\60", "/tmp/rat/f'\\20" })]
-    public void Tokenize_BackslashBeforeNonWhitespace_ShouldEscapeCharacter(string input, string[] expected)
+    public void Tokenize_BackslashEscaping_MatchesCodeCraftersRequirements(string input, string[] expected)
     {
         var result = CommandRouter.Tokenize(input);
         Assert.Equal(expected, result);
