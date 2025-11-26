@@ -55,31 +55,9 @@ public sealed class CommandRouter
                 }
                 else if (inDoubleQuotes)
                 {
-                    // Inside double quotes:
-                    // - \ " $ ` space: backslash escapes them (remove backslash, keep char)
-                    // - single quote: keep backslash, skip the quote
-                    // - Other chars (like n, 5): keep both backslash and character
-                    if (i + 1 < input.Length)
-                    {
-                        var next = input[i + 1];
-                        if (next == '\\' || next == '"' || next == '$' || next == '`' || next == ' ')
-                        {
-                            escapeNext = true;
-                        }
-                        else if (next == '\'')
-                        {
-                            cur.Append(ch); // Keep backslash
-                            i++; // Skip the quote
-                        }
-                        else
-                        {
-                            cur.Append(ch); // Keep backslash, let next iteration handle the character
-                        }
-                    }
-                    else
-                    {
-                        cur.Append(ch);
-                    }
+                    // Inside double quotes, backslash ALWAYS escapes the next character
+                    // (removes the backslash, keeps the next character as literal)
+                    escapeNext = true;
                 }
                 else
                 {
