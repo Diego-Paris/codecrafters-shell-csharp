@@ -190,15 +190,12 @@ public class CommandRouterTests : IDisposable
     [Fact]
     public void Route_OutputRedirection_EchoWithExplicitFileDescriptor_ShouldWriteContentToFile()
     {
-        // Arrange
         var outputFile = Path.Combine(_testDirectory, "output.txt");
         var ctx = CreateShellContext();
         var router = new CommandRouter(ctx);
 
-        // Act
         var exitCode = router.Route($"echo 'Hello James' 1> \"{outputFile}\"");
 
-        // Assert
         Assert.Equal(0, exitCode);
         Assert.True(File.Exists(outputFile), "Output file should be created");
         var content = File.ReadAllText(outputFile).Trim();
