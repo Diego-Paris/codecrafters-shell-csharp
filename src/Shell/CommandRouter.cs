@@ -13,16 +13,92 @@ public sealed class CommandRouter
         var parts = Tokenize(line);
         if (parts.Count == 0) return 0;
 
-        var name = parts[0];
+        string? outputFile = null;
+        var commandParts = new List<string>();
 
-        if (_ctx.Commands.TryGetValue(name, out var cmd))
-            return cmd.Execute(parts.Skip(1).ToArray(), _ctx);
+        for (int i = 0; i < parts.Count; i++)
+        {
+            if (parts[i] is ">" or "1>")
+            {
+                if (i + 1 < parts.Count)
+                {
+                    outputFile = parts[i + 1];
+                    i++;
+                }
+                continue;
+            }
+            commandParts.Add(parts[i]);
+        }
 
-        if (_ctx.Commands.TryGetValue("external", out var external))
-            return external.Execute(parts.ToArray(), _ctx);
+        if (commandParts.Count == 0) return 0;
 
-        _ctx.Out.WriteLine($"{name}: command not found");
-        return 127;
+        var name = commandParts[0];
+        int exitCode;
+
+        if (outputFile is not null)
+        {
+            var directory = Path.GetDirectoryName(outputFile);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            using var fileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var writer = new StreamWriter(fileStream);
+            var originalOut = _ctx.Out;
+
+            var contextWithRedirection = new RedirectedShellContext(_ctx, writer);
+
+            if (contextWithRedirection.Commands.TryGetValue(name, out var cmd))
+            {
+                exitCode = cmd.Execute(commandParts.Skip(1).ToArray(), contextWithRedirection);
+            }
+            else if (contextWithRedirection.Commands.TryGetValue("external", out var external))
+            {
+                exitCode = external.Execute(commandParts.ToArray(), contextWithRedirection);
+            }
+            else
+            {
+                _ctx.Out.WriteLine($"{name}: command not found");
+                return 127;
+            }
+        }
+        else
+        {
+            if (_ctx.Commands.TryGetValue(name, out var cmd))
+            {
+                exitCode = cmd.Execute(commandParts.Skip(1).ToArray(), _ctx);
+            }
+            else if (_ctx.Commands.TryGetValue("external", out var external))
+            {
+                exitCode = external.Execute(commandParts.ToArray(), _ctx);
+            }
+            else
+            {
+                _ctx.Out.WriteLine($"{name}: command not found");
+                return 127;
+            }
+        }
+
+        return exitCode;
+    }
+
+    private sealed class RedirectedShellContext : IShellContext
+    {
+        private readonly IShellContext _inner;
+        private readonly TextWriter _redirectedOut;
+
+        public RedirectedShellContext(IShellContext inner, TextWriter redirectedOut)
+        {
+            _inner = inner;
+            _redirectedOut = redirectedOut;
+        }
+
+        public IReadOnlyDictionary<string, ICommand> Commands => _inner.Commands;
+        public TextReader In => _inner.In;
+        public TextWriter Out => _redirectedOut;
+        public TextWriter Err => _inner.Err;
+        public IPathResolver PathResolver => _inner.PathResolver;
     }
 
     internal static List<string> Tokenize(string input)
