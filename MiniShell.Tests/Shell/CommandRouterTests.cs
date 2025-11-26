@@ -73,8 +73,8 @@ public class CommandRouterTests
     [InlineData("echo hello\\\\world", new[] { "echo", "hello\\world" })]
     [InlineData("echo \\'\\\"hello world\\\"\\'", new[] { "echo", "'\"hello", "world\"'" })]
     [InlineData("cat \"/tmp/file\\\\name\"", new[] { "cat", "/tmp/file\\name" })]
-    [InlineData("cat \"/tmp/file\\ name\"", new[] { "cat", "/tmp/file name" })]
-    [InlineData("cat \"/tmp/file\\\\name\" \"/tmp/file\\ name\"", new[] { "cat", "/tmp/file\\name", "/tmp/file name" })]
+    [InlineData("cat \"/tmp/file\\ name\"", new[] { "cat", "/tmp/file\\ name" })]
+    [InlineData("cat \"/tmp/file\\\\name\" \"/tmp/file\\ name\"", new[] { "cat", "/tmp/file\\name", "/tmp/file\\ name" })]
     [InlineData("echo before\\ after", new[] { "echo", "before after" })]
     public void Tokenize_BackslashEscaping_ShouldEscapeSpecialCharacters(string input, string[] expected)
     {
@@ -87,7 +87,7 @@ public class CommandRouterTests
     [InlineData("echo \\$HOME", new[] { "echo", "$HOME" })]
     [InlineData("echo hello\\ \\ \\ \\ \\ \\ shell", new[] { "echo", "hello      shell" })]
     [InlineData("echo test\\nworld", new[] { "echo", "testnworld" })]
-    [InlineData("cat \"/tmp/pig/f\\n24\" \"/tmp/pig/f\\56\" \"/tmp/pig/f'\\'4\"", new[] { "cat", "/tmp/pig/f\\n24", "/tmp/pig/f\\56", "/tmp/pig/f'\\4" })]
+    [InlineData("cat \"/tmp/pig/f\\n24\" \"/tmp/pig/f\\56\" \"/tmp/pig/f'\\'4\"", new[] { "cat", "/tmp/pig/f\\n24", "/tmp/pig/f\\56", "/tmp/pig/f'\\'4" })]
     [InlineData("cat \"/tmp/rat/f\\\\n58\" \"/tmp/rat/f\\\\60\" \"/tmp/rat/f'\\\\20\"", new[] { "cat", "/tmp/rat/f\\n58", "/tmp/rat/f\\60", "/tmp/rat/f'\\20" })]
     public void Tokenize_BackslashEscaping_MatchesCodeCraftersRequirements(string input, string[] expected)
     {
