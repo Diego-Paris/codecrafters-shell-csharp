@@ -11,6 +11,7 @@ services.AddSingleton<IPathResolver, PathResolver>();
 services.AddSingleton<IShellContext, ShellContext>();
 
 // commands
+services.AddSingleton<ICommand, CdCommand>();
 services.AddSingleton<ICommand, EchoCommand>();
 services.AddSingleton<ICommand, ExitCommand>();
 services.AddSingleton<ICommand, GreetCommand>();
