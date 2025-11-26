@@ -55,9 +55,24 @@ public sealed class CommandRouter
                 }
                 else if (inDoubleQuotes)
                 {
-                    // Inside double quotes, backslash ALWAYS escapes the next character
-                    // (removes the backslash, keeps the next character as literal)
-                    escapeNext = true;
+                    // Inside double quotes, backslash only escapes specific characters: \ " $ `
+                    // For other characters, the backslash is literal
+                    if (i + 1 < input.Length)
+                    {
+                        var next = input[i + 1];
+                        if (next == '\\' || next == '"' || next == '$' || next == '`')
+                        {
+                            escapeNext = true; // Remove backslash, keep next char
+                        }
+                        else
+                        {
+                            cur.Append(ch); // Keep the backslash as literal
+                        }
+                    }
+                    else
+                    {
+                        cur.Append(ch);
+                    }
                 }
                 else
                 {
