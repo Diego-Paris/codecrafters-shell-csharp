@@ -31,17 +31,37 @@ public sealed class CommandRouter
         if (string.IsNullOrWhiteSpace(input)) return list;
 
         var cur = new System.Text.StringBuilder();
-        bool inQuotes = false;
+        bool inDoubleQuotes = false;
+        bool inSingleQuotes = false;
 
         foreach (var ch in input)
         {
-            if (ch == '"') { inQuotes = !inQuotes; continue; }
-            if (!inQuotes && char.IsWhiteSpace(ch))
+            if (ch == '"' && !inSingleQuotes)
             {
-                if (cur.Length > 0) { list.Add(cur.ToString()); cur.Clear(); }
+                inDoubleQuotes = !inDoubleQuotes;
+                continue;
             }
-            else cur.Append(ch);
+
+            if (ch == '\'' && !inDoubleQuotes)
+            {
+                inSingleQuotes = !inSingleQuotes;
+                continue;
+            }
+
+            if (!inDoubleQuotes && !inSingleQuotes && char.IsWhiteSpace(ch))
+            {
+                if (cur.Length > 0)
+                {
+                    list.Add(cur.ToString());
+                    cur.Clear();
+                }
+            }
+            else
+            {
+                cur.Append(ch);
+            }
         }
+
         if (cur.Length > 0) list.Add(cur.ToString());
         return list;
     }
