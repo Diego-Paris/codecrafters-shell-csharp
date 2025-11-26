@@ -9,6 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MiniShell.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="MiniShell.Tests\**" />
+    <EmbeddedResource Remove="MiniShell.Tests\**" />
+    <None Remove="MiniShell.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EditorConfigFiles Remove="C:\Users\Hipep\source\repos\codecrafters-shell-csharp\.editorconfig" />
   </ItemGroup>
 

@@ -25,7 +25,7 @@ public sealed class CommandRouter
         return 127;
     }
 
-    private static List<string> Tokenize(string input)
+    internal static List<string> Tokenize(string input)
     {
         var list = new List<string>();
         if (string.IsNullOrWhiteSpace(input)) return list;
@@ -33,27 +33,54 @@ public sealed class CommandRouter
         var cur = new System.Text.StringBuilder();
         bool inDoubleQuotes = false;
         bool inSingleQuotes = false;
+        bool escapeNext = false;
+        bool hadQuotes = false;
 
-        foreach (var ch in input)
+        for (int i = 0; i < input.Length; i++)
         {
+            var ch = input[i];
+
+            if (escapeNext)
+            {
+                cur.Append(ch);
+                escapeNext = false;
+                continue;
+            }
+
+            if (ch == '\\')
+            {
+                if (inSingleQuotes)
+                {
+                    cur.Append(ch);
+                }
+                else
+                {
+                    escapeNext = true;
+                }
+                continue;
+            }
+
             if (ch == '"' && !inSingleQuotes)
             {
                 inDoubleQuotes = !inDoubleQuotes;
+                hadQuotes = true;
                 continue;
             }
 
             if (ch == '\'' && !inDoubleQuotes)
             {
                 inSingleQuotes = !inSingleQuotes;
+                hadQuotes = true;
                 continue;
             }
 
             if (!inDoubleQuotes && !inSingleQuotes && char.IsWhiteSpace(ch))
             {
-                if (cur.Length > 0)
+                if (cur.Length > 0 || hadQuotes)
                 {
                     list.Add(cur.ToString());
                     cur.Clear();
+                    hadQuotes = false;
                 }
             }
             else
@@ -62,7 +89,7 @@ public sealed class CommandRouter
             }
         }
 
-        if (cur.Length > 0) list.Add(cur.ToString());
+        if (cur.Length > 0 || hadQuotes) list.Add(cur.ToString());
         return list;
     }
 }
