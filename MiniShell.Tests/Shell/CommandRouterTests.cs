@@ -74,6 +74,8 @@ public class CommandRouterTests
     [InlineData("echo \\'\\\"hello world\\\"\\'", new[] { "echo", "'\"hello", "world\"'" })]
     [InlineData("cat \"/tmp/file\\\\name\"", new[] { "cat", "/tmp/file\\name" })]
     [InlineData("cat \"/tmp/file\\ name\"", new[] { "cat", "/tmp/file name" })]
+    [InlineData("cat \"/tmp/file\\\\name\" \"/tmp/file\\ name\"", new[] { "cat", "/tmp/file\\name", "/tmp/file name" })]
+    [InlineData("echo before\\ after", new[] { "echo", "before after" })]
     public void Tokenize_BackslashEscaping_ShouldEscapeSpecialCharacters(string input, string[] expected)
     {
         var result = CommandRouter.Tokenize(input);
@@ -81,9 +83,12 @@ public class CommandRouterTests
     }
 
     [Theory]
-    [InlineData("echo before\\ after", new[] { "echo", "before after" })]
     [InlineData("echo test\\nvalue", new[] { "echo", "testnvalue" })]
     [InlineData("echo \\$HOME", new[] { "echo", "$HOME" })]
+    [InlineData("cat \"/tmp/rat/f\\\\n58\"", new[] { "cat", "/tmp/rat/f\\n58" })]
+    [InlineData("cat \"/tmp/rat/f\\\\60\"", new[] { "cat", "/tmp/rat/f\\60" })]
+    [InlineData("cat \"/tmp/rat/f'\\\\20\"", new[] { "cat", "/tmp/rat/f'\\20" })]
+    [InlineData("cat \"/tmp/rat/f\\\\n58\" \"/tmp/rat/f\\\\60\" \"/tmp/rat/f'\\\\20\"", new[] { "cat", "/tmp/rat/f\\n58", "/tmp/rat/f\\60", "/tmp/rat/f'\\20" })]
     public void Tokenize_BackslashBeforeNonWhitespace_ShouldEscapeCharacter(string input, string[] expected)
     {
         var result = CommandRouter.Tokenize(input);
