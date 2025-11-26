@@ -48,12 +48,25 @@ public class ExternalCommand : ICommand
             process.StartInfo.FileName = executable;
             process.StartInfo.Arguments = finalArgs;
             process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardInput = false;
-            process.StartInfo.RedirectStandardOutput = false;
-            process.StartInfo.RedirectStandardError = false;
-            process.StartInfo.CreateNoWindow = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.CreateNoWindow = true;
+
+            process.OutputDataReceived += (_, e) =>
+            {
+                if (e.Data is not null)
+                    ctx.Out.WriteLine(e.Data);
+            };
+
+            process.ErrorDataReceived += (_, e) =>
+            {
+                if (e.Data is not null)
+                    ctx.Err.WriteLine(e.Data);
+            };
 
             process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
             process.WaitForExit();
             return process.ExitCode;
         }

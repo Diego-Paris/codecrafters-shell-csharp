@@ -44,8 +44,7 @@ public sealed class CommandRouter
             }
 
             using var fileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read);
-            using var writer = new StreamWriter(fileStream);
-            var originalOut = _ctx.Out;
+            using var writer = new StreamWriter(fileStream) { AutoFlush = true };
 
             var contextWithRedirection = new RedirectedShellContext(_ctx, writer);
 
@@ -62,6 +61,8 @@ public sealed class CommandRouter
                 _ctx.Out.WriteLine($"{name}: command not found");
                 return 127;
             }
+
+            writer.Flush();
         }
         else
         {
