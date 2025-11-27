@@ -1,4 +1,6 @@
 ﻿using MiniShell.Abstractions;
+using MiniShell.Parsing;
+using MiniShell.Runtime;
 
 namespace MiniShell;
 
@@ -10,96 +12,46 @@ public sealed class CommandRouter
 
     public int Route(string line)
     {
-        var parts = Tokenize(line);
-        if (parts.Count == 0) return 0;
+        var tokens = Tokenize(line);
+        if (tokens.Count == 0) return 0;
 
-        string? outputFile = null;
-        var commandParts = new List<string>();
+        var redirectionInfo = RedirectionParser.Parse(tokens);
+        if (redirectionInfo.CommandParts.Length == 0) return 0;
 
-        for (int i = 0; i < parts.Count; i++)
+        var name = redirectionInfo.CommandParts[0];
+        var hasRedirection = redirectionInfo.StdoutFile is not null || redirectionInfo.StderrFile is not null;
+
+        if (hasRedirection)
         {
-            if (parts[i] is ">" or "1>")
+            var handler = new FileRedirectionHandler();
+            try
             {
-                if (i + 1 < parts.Count)
-                {
-                    outputFile = parts[i + 1];
-                    i++;
-                }
-                continue;
+                var context = handler.CreateRedirectedContext(_ctx, redirectionInfo);
+                return ExecuteCommand(name, redirectionInfo.CommandParts, context);
             }
-            commandParts.Add(parts[i]);
-        }
-
-        if (commandParts.Count == 0) return 0;
-
-        var name = commandParts[0];
-        int exitCode;
-
-        if (outputFile is not null)
-        {
-            var directory = Path.GetDirectoryName(outputFile);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            finally
             {
-                Directory.CreateDirectory(directory);
-            }
-
-            using var fileStream = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read);
-            using var writer = new StreamWriter(fileStream) { AutoFlush = true };
-
-            var contextWithRedirection = new RedirectedShellContext(_ctx, writer);
-
-            if (contextWithRedirection.Commands.TryGetValue(name, out var cmd))
-            {
-                exitCode = cmd.Execute(commandParts.Skip(1).ToArray(), contextWithRedirection);
-            }
-            else if (contextWithRedirection.Commands.TryGetValue("external", out var external))
-            {
-                exitCode = external.Execute(commandParts.ToArray(), contextWithRedirection);
-            }
-            else
-            {
-                _ctx.Out.WriteLine($"{name}: command not found");
-                return 127;
-            }
-
-            writer.Flush();
-        }
-        else
-        {
-            if (_ctx.Commands.TryGetValue(name, out var cmd))
-            {
-                exitCode = cmd.Execute(commandParts.Skip(1).ToArray(), _ctx);
-            }
-            else if (_ctx.Commands.TryGetValue("external", out var external))
-            {
-                exitCode = external.Execute(commandParts.ToArray(), _ctx);
-            }
-            else
-            {
-                _ctx.Out.WriteLine($"{name}: command not found");
-                return 127;
+                handler.Cleanup();
             }
         }
 
-        return exitCode;
+        return ExecuteCommand(name, redirectionInfo.CommandParts, _ctx);
     }
 
-    private sealed class RedirectedShellContext : IShellContext
+    private int ExecuteCommand(string name, string[] commandParts, IShellContext context)
     {
-        private readonly IShellContext _inner;
-        private readonly TextWriter _redirectedOut;
-
-        public RedirectedShellContext(IShellContext inner, TextWriter redirectedOut)
+        if (context.Commands.TryGetValue(name, out var cmd))
         {
-            _inner = inner;
-            _redirectedOut = redirectedOut;
+            return cmd.Execute(commandParts.Skip(1).ToArray(), context);
         }
 
-        public IReadOnlyDictionary<string, ICommand> Commands => _inner.Commands;
-        public TextReader In => _inner.In;
-        public TextWriter Out => _redirectedOut;
-        public TextWriter Err => _inner.Err;
-        public IPathResolver PathResolver => _inner.PathResolver;
+        if (context.Commands.TryGetValue("external", out var external))
+        {
+            return external.Execute(commandParts, context);
+        }
+
+        _ctx.Out.WriteLine($"{name}: command not found");
+        return 127;
     }
 
     internal static List<string> Tokenize(string input)

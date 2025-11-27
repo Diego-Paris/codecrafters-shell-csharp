@@ -407,3 +407,6 @@ ASALocalRun/
 # LLM
 .claude/
 CLAUDE.md
+
+# Test output
+test_output/
