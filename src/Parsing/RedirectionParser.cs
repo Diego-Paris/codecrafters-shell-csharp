@@ -8,15 +8,40 @@ public static class RedirectionParser
     {
         string? stdoutFile = null;
         string? stderrFile = null;
+        bool appendStdout = false;
+        bool appendStderr = false;
         var commandParts = new List<string>();
 
         for (int i = 0; i < tokens.Count; i++)
         {
+            if (tokens[i] is ">>" or "1>>")
+            {
+                if (i + 1 < tokens.Count)
+                {
+                    stdoutFile = tokens[i + 1];
+                    appendStdout = true;
+                    i++;
+                }
+                continue;
+            }
+
             if (tokens[i] is ">" or "1>")
             {
                 if (i + 1 < tokens.Count)
                 {
                     stdoutFile = tokens[i + 1];
+                    appendStdout = false;
+                    i++;
+                }
+                continue;
+            }
+
+            if (tokens[i] == "2>>")
+            {
+                if (i + 1 < tokens.Count)
+                {
+                    stderrFile = tokens[i + 1];
+                    appendStderr = true;
                     i++;
                 }
                 continue;
@@ -27,6 +52,7 @@ public static class RedirectionParser
                 if (i + 1 < tokens.Count)
                 {
                     stderrFile = tokens[i + 1];
+                    appendStderr = false;
                     i++;
                 }
                 continue;
@@ -38,7 +64,9 @@ public static class RedirectionParser
         return new RedirectionInfo(
             commandParts.ToArray(),
             stdoutFile,
-            stderrFile
+            stderrFile,
+            appendStdout,
+            appendStderr
         );
     }
 }

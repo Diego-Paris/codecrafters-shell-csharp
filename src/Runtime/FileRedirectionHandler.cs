@@ -9,8 +9,8 @@ public sealed class FileRedirectionHandler : IRedirectionHandler
 
     public IShellContext CreateRedirectedContext(IShellContext context, RedirectionInfo info)
     {
-        var outWriter = CreateWriter(info.StdoutFile) ?? context.Out;
-        var errWriter = CreateWriter(info.StderrFile) ?? context.Err;
+        var outWriter = CreateWriter(info.StdoutFile, info.AppendStdout) ?? context.Out;
+        var errWriter = CreateWriter(info.StderrFile, info.AppendStderr) ?? context.Err;
 
         return new RedirectedShellContext(context, outWriter, errWriter);
     }
@@ -24,7 +24,7 @@ public sealed class FileRedirectionHandler : IRedirectionHandler
         _disposables.Clear();
     }
 
-    private StreamWriter? CreateWriter(string? filePath)
+    private StreamWriter? CreateWriter(string? filePath, bool append)
     {
         if (filePath is null) return null;
 
@@ -34,7 +34,8 @@ public sealed class FileRedirectionHandler : IRedirectionHandler
             Directory.CreateDirectory(directory);
         }
 
-        var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read);
+        var mode = append ? FileMode.Append : FileMode.Create;
+        var stream = new FileStream(filePath, mode, FileAccess.Write, FileShare.Read);
         var writer = new StreamWriter(stream) { AutoFlush = true };
 
         _disposables.Add(writer);

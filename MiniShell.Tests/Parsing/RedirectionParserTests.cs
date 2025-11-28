@@ -143,4 +143,78 @@ public class RedirectionParserTests
         Assert.Equal(new[] { "cat", "nonexistent" }, result.CommandParts);
         Assert.Equal("second.txt", result.StderrFile);
     }
+
+    [Fact]
+    public void Parse_AppendStdoutRedirection_SetsAppendFlag()
+    {
+        var tokens = new[] { "echo", "hello", ">>", "output.txt" };
+
+        var result = RedirectionParser.Parse(tokens);
+
+        Assert.Equal(new[] { "echo", "hello" }, result.CommandParts);
+        Assert.Equal("output.txt", result.StdoutFile);
+        Assert.True(result.AppendStdout);
+    }
+
+    [Fact]
+    public void Parse_AppendStdoutWith1Operator_SetsAppendFlag()
+    {
+        var tokens = new[] { "echo", "hello", "1>>", "output.txt" };
+
+        var result = RedirectionParser.Parse(tokens);
+
+        Assert.Equal(new[] { "echo", "hello" }, result.CommandParts);
+        Assert.Equal("output.txt", result.StdoutFile);
+        Assert.True(result.AppendStdout);
+    }
+
+    [Fact]
+    public void Parse_AppendStderrRedirection_SetsAppendFlag()
+    {
+        var tokens = new[] { "cat", "nonexistent", "2>>", "error.txt" };
+
+        var result = RedirectionParser.Parse(tokens);
+
+        Assert.Equal(new[] { "cat", "nonexistent" }, result.CommandParts);
+        Assert.Equal("error.txt", result.StderrFile);
+        Assert.True(result.AppendStderr);
+    }
+
+    [Fact]
+    public void Parse_OverwriteThenAppend_UsesAppend()
+    {
+        var tokens = new[] { "echo", "test", ">", "first.txt", ">>", "second.txt" };
+
+        var result = RedirectionParser.Parse(tokens);
+
+        Assert.Equal(new[] { "echo", "test" }, result.CommandParts);
+        Assert.Equal("second.txt", result.StdoutFile);
+        Assert.True(result.AppendStdout);
+    }
+
+    [Fact]
+    public void Parse_AppendThenOverwrite_UsesOverwrite()
+    {
+        var tokens = new[] { "echo", "test", ">>", "first.txt", ">", "second.txt" };
+
+        var result = RedirectionParser.Parse(tokens);
+
+        Assert.Equal(new[] { "echo", "test" }, result.CommandParts);
+        Assert.Equal("second.txt", result.StdoutFile);
+        Assert.False(result.AppendStdout);
+    }
+
+    [Fact]
+    public void Parse_BothAppendRedirections_SetsBothFlags()
+    {
+        var tokens = new[] { "cat", "file.txt", ">>", "out.txt", "2>>", "err.txt" };
+
+        var result = RedirectionParser.Parse(tokens);
+
+        Assert.Equal(new[] { "cat", "file.txt" }, result.CommandParts);
+        Assert.Equal("out.txt", result.StdoutFile);
+        Assert.Equal("err.txt", result.StderrFile);
+        Assert.True(result.AppendStdout);
+        Assert.True(result.AppendStderr);
+    }
 }
