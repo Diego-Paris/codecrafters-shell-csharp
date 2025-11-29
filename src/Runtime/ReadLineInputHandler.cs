@@ -36,7 +36,12 @@ public sealed class ReadLineInputHandler : IInputHandler
             var lastWord = GetLastWord(text, out var _);
             var completions = _completionProvider.GetCompletions(lastWord).ToArray();
 
-            return completions.Length == 0 ? null : completions;
+            if (completions.Length == 0)
+            {
+                return null;
+            }
+
+            return completions.Select(c => c + " ").ToArray();
         }
 
         private string GetLastWord(string text, out int wordStartIndex)
