@@ -31,6 +31,8 @@ public sealed class Shell
     /// <returns>Exit code (0 for normal termination, non-zero for errors).</returns>
     public Task<int> RunAsync()
     {
+        LoadHistoryFromFile();
+
         while (true)
         {
             var line = _inputHandler.ReadInput("$ ");
@@ -40,6 +42,24 @@ public sealed class Shell
                 _context.AddToHistory(line);
             }
             _router.Route(line);
+        }
+    }
+
+    private void LoadHistoryFromFile()
+    {
+        var histFile = Environment.GetEnvironmentVariable("HISTFILE");
+        if (string.IsNullOrEmpty(histFile) || !File.Exists(histFile))
+        {
+            return;
+        }
+
+        var lines = File.ReadAllLines(histFile);
+        foreach (var line in lines)
+        {
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                _context.AddToHistory(line);
+            }
         }
     }
 }
