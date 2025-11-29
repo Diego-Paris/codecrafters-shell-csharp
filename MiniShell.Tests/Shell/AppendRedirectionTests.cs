@@ -194,5 +194,9 @@ public class AppendRedirectionTests : IDisposable
         public required TextWriter Err { get; init; }
         public IReadOnlyList<string> CommandHistory { get; init; } = Array.Empty<string>();
         public required IPathResolver PathResolver { get; init; }
+        public void AddToHistory(string command) { }
+        public IReadOnlyList<string> GetCommandsSinceLastAppend() => Array.Empty<string>();
+        public void MarkLastAppendPosition() { }
+        public void SaveHistoryToFile() { }
     }
 }

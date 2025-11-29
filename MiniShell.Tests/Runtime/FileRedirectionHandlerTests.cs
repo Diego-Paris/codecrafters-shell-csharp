@@ -202,7 +202,11 @@ public class FileRedirectionHandlerTests : IDisposable
         public required TextWriter Out { get; init; }
         public required TextWriter Err { get; init; }
         public required IPathResolver PathResolver { get; init; }
+        public void AddToHistory(string command) { }
         public IReadOnlyList<string> CommandHistory { get; init; } = Array.Empty<string>();
+        public IReadOnlyList<string> GetCommandsSinceLastAppend() => Array.Empty<string>();
+        public void MarkLastAppendPosition() { }
+        public void SaveHistoryToFile() { }
     }
 
     private class MockPathResolver : IPathResolver

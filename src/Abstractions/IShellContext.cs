@@ -34,4 +34,26 @@ public interface IShellContext
     /// Gets the command history list.
     /// </summary>
     IReadOnlyList<string> CommandHistory { get; }
+
+    /// <summary>
+    /// Adds a command to the history.
+    /// </summary>
+    /// <param name="command">The command to add to history.</param>
+    void AddToHistory(string command);
+
+    /// <summary>
+    /// Gets commands that have been added since the last append operation.
+    /// </summary>
+    /// <returns>List of commands added since last append.</returns>
+    IReadOnlyList<string> GetCommandsSinceLastAppend();
+
+    /// <summary>
+    /// Marks the current position as the last append point.
+    /// </summary>
+    void MarkLastAppendPosition();
+
+    /// <summary>
+    /// Saves the command history to the HISTFILE if set.
+    /// </summary>
+    void SaveHistoryToFile();
 }

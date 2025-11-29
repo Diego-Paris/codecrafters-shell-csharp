@@ -8,6 +8,7 @@ namespace MiniShell.Runtime;
 public sealed class ShellContext : IShellContext
 {
     private readonly List<string> _commandHistory = new();
+    private int _lastAppendIndex = 0;
 
     /// <summary>
     /// Initializes a new shell context, building the command registry and wiring up standard console streams.
@@ -77,5 +78,46 @@ public sealed class ShellContext : IShellContext
     public void AddToHistory(string command)
     {
         _commandHistory.Add(command);
+    }
+
+    /// <summary>
+    /// Gets commands that have been added since the last append operation.
+    /// </summary>
+    public IReadOnlyList<string> GetCommandsSinceLastAppend()
+    {
+        if (_lastAppendIndex >= _commandHistory.Count)
+        {
+            return Array.Empty<string>();
+        }
+
+        return _commandHistory.Skip(_lastAppendIndex).ToList();
+    }
+
+    /// <summary>
+    /// Marks the current position as the last append point.
+    /// </summary>
+    public void MarkLastAppendPosition()
+    {
+        _lastAppendIndex = _commandHistory.Count;
+    }
+
+    /// <summary>
+    /// Saves the command history to the HISTFILE if set.
+    /// </summary>
+    public void SaveHistoryToFile()
+    {
+        var histFile = Environment.GetEnvironmentVariable("HISTFILE");
+        if (string.IsNullOrEmpty(histFile))
+        {
+            return;
+        }
+
+        var directory = Path.GetDirectoryName(histFile);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        File.WriteAllLines(histFile, _commandHistory);
     }
 }

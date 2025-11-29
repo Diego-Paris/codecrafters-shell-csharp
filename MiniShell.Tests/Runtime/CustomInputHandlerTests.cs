@@ -11,7 +11,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(Array.Empty<string>());
         var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -24,7 +24,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "echo" });
         var mockConsole = new MockConsole(new[] { 'e', 'c', 'h', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -37,7 +37,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(Array.Empty<string>());
         var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '\t', '\t', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -50,7 +50,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "echo" });
         var mockConsole = new MockConsole(new[] { 'e', 'c', 'h', '\t', 'h', 'e', 'l', 'l', 'o', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -64,7 +64,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "echo" });
         var mockConsole = new MockConsole(new[] { '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -77,7 +77,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "echo" });
         var mockConsole = new MockConsole(new[] { 'e', 'c', 'h', '\t', 'x', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -90,7 +90,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "echo" });
         var mockConsole = new MockConsole(new[] { 'e', 'c', 'h', '\t', 'h', 'e', 'l', 'l', 'o', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -104,7 +104,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "xyz_bar", "xyz_baz", "xyz_quz" });
         var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -117,7 +117,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "xyz_quz", "xyz_bar", "xyz_baz" });
         var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -132,7 +132,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "abc", "abd", "abe" });
         var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -147,7 +147,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "test1", "test2", "test3" });
         var mockConsole = new MockConsole(new[] { 't', 'e', 's', 't', '\t', '\t', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -160,7 +160,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "abc", "abd", "xyz" });
         var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', 'c', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -173,12 +173,24 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "echo", "exit", "export" });
         var mockConsole = new MockConsole(new[] { 'e', '\t', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
         Assert.Contains("echo  exit  export", mockConsole.Output);
         Assert.Equal("e", result);
+    }
+
+    private static MockShellContext CreateMockContext()
+    {
+        return new MockShellContext
+        {
+            Commands = new Dictionary<string, ICommand>(),
+            In = new StringReader(""),
+            Out = new StringWriter(),
+            Err = new StringWriter(),
+            PathResolver = new MockPathResolver()
+        };
     }
 
     private static int CountOccurrences(string text, string pattern)
@@ -198,7 +210,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "xyz_foo", "xyz_foo_bar", "xyz_foo_bar_baz" });
         var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -211,7 +223,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "xyz_foo", "xyz_foo_bar", "xyz_foo_bar_baz" });
         var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '_', '\t', '_', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -223,7 +235,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "abc", "abd", "abe" });
         var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -236,7 +248,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "test_a", "test_b", "test_c" });
         var mockConsole = new MockConsole(new[] { 't', 'e', '\t', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -249,7 +261,7 @@ public class CustomInputHandlerTests
     {
         var provider = new MockCompletionProvider(new[] { "foo", "foobar", "foobarbaz" });
         var mockConsole = new MockConsole(new[] { 'f', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
+        var handler = new CustomInputHandler(provider, CreateMockContext(), mockConsole);
 
         var result = handler.ReadInput("$ ");
 
@@ -315,5 +327,24 @@ public class CustomInputHandlerTests
         {
             return _completions.Where(c => c.StartsWith(prefix, StringComparison.Ordinal));
         }
+    }
+
+    private class MockShellContext : IShellContext
+    {
+        public required IReadOnlyDictionary<string, ICommand> Commands { get; init; }
+        public required TextReader In { get; init; }
+        public required TextWriter Out { get; init; }
+        public required TextWriter Err { get; init; }
+        public IReadOnlyList<string> CommandHistory { get; init; } = Array.Empty<string>();
+        public required IPathResolver PathResolver { get; init; }
+        public void AddToHistory(string command) { }
+        public IReadOnlyList<string> GetCommandsSinceLastAppend() => Array.Empty<string>();
+        public void MarkLastAppendPosition() { }
+        public void SaveHistoryToFile() { }
+    }
+
+    private class MockPathResolver : IPathResolver
+    {
+        public string? FindInPath(string executable) => null;
     }
 }

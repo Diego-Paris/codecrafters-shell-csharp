@@ -113,5 +113,37 @@ public sealed class FileRedirectionHandler : IRedirectionHandler
         /// Gets the command history from the inner context.
         /// </summary>
         public IReadOnlyList<string> CommandHistory => _inner.CommandHistory;
+
+        /// <summary>
+        /// Adds a command to the history via the inner context.
+        /// </summary>
+        public void AddToHistory(string command)
+        {
+            _inner.AddToHistory(command);
+        }
+
+        /// <summary>
+        /// Gets commands that have been added since the last append operation.
+        /// </summary>
+        public IReadOnlyList<string> GetCommandsSinceLastAppend()
+        {
+            return _inner.GetCommandsSinceLastAppend();
+        }
+
+        /// <summary>
+        /// Marks the current position as the last append point.
+        /// </summary>
+        public void MarkLastAppendPosition()
+        {
+            _inner.MarkLastAppendPosition();
+        }
+
+        /// <summary>
+        /// Saves the command history to the HISTFILE if set.
+        /// </summary>
+        public void SaveHistoryToFile()
+        {
+            _inner.SaveHistoryToFile();
+        }
     }
 }
