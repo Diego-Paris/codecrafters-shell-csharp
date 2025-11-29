@@ -15,17 +15,13 @@ var services = new ServiceCollection();
 // infrastructure
 services.AddSingleton<IPathResolver, PathResolver>();
 services.AddSingleton<ITokenizer, ShellTokenizer>();
-services.AddSingleton<ShellContext>();
-services.AddSingleton<IShellContext>(sp => sp.GetRequiredService<ShellContext>());
+services.AddSingleton<IShellContext, ShellContext>();
 services.AddSingleton<IHistoryService, HistoryService>();
 
 // tab completion
 services.AddSingleton<ICompletionTrie, CompletionTrie>();
 services.AddSingleton<ICompletionProvider, CommandCompletionProvider>();
-services.AddSingleton<IInputHandler>(sp => new CustomInputHandler(
-    sp.GetRequiredService<ICompletionProvider>(),
-    sp.GetRequiredService<IShellContext>()
-));
+services.AddSingleton<IInputHandler, CustomInputHandler>();
 
 // commands
 services.AddSingleton<ICommand, CdCommand>();

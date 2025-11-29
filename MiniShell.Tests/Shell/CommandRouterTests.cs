@@ -274,7 +274,7 @@ public class CommandRouterTests : IDisposable
             new MiniShell.Commands.PwdCommand(),
             new MiniShell.Commands.CdCommand(),
             new MiniShell.Commands.TypeCommand(),
-            new MiniShell.Commands.ExitCommand(mockHistoryService),
+            new MiniShell.Commands.ExitCommand(),
             new MiniShell.Commands.ExternalCommand()
         };
 

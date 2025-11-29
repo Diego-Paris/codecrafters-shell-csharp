@@ -10,7 +10,7 @@ public sealed class Shell
 {
     private readonly CommandRouter _router;
     private readonly IInputHandler _inputHandler;
-    private readonly ShellContext _context;
+    private readonly IShellContext _context;
     private readonly IHistoryService _historyService;
 
     /// <summary>
@@ -20,7 +20,7 @@ public sealed class Shell
     /// <param name="inputHandler">The input handler for reading user input with tab completion support.</param>
     /// <param name="context">The shell context for tracking history.</param>
     /// <param name="historyService">The history service for loading and saving command history.</param>
-    public Shell(CommandRouter router, IInputHandler inputHandler, ShellContext context, IHistoryService historyService)
+    public Shell(CommandRouter router, IInputHandler inputHandler, IShellContext context, IHistoryService historyService)
     {
         _router = router;
         _inputHandler = inputHandler;

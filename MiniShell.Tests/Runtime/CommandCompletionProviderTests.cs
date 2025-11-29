@@ -134,11 +134,10 @@ public class CommandCompletionProviderTests
 
     private IShellContext CreateShellContext()
     {
-        var mockHistoryService = new MockHistoryService();
         var commands = new ICommand[]
         {
             new MiniShell.Commands.EchoCommand(),
-            new MiniShell.Commands.ExitCommand(mockHistoryService),
+            new MiniShell.Commands.ExitCommand(),
             new MiniShell.Commands.CdCommand(),
             new MiniShell.Commands.PwdCommand(),
             new MiniShell.Commands.TypeCommand(),
