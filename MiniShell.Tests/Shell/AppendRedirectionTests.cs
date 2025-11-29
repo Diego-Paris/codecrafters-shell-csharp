@@ -192,6 +192,7 @@ public class AppendRedirectionTests : IDisposable
         public required TextReader In { get; init; }
         public required TextWriter Out { get; init; }
         public required TextWriter Err { get; init; }
+        public IReadOnlyList<string> CommandHistory { get; init; } = Array.Empty<string>();
         public required IPathResolver PathResolver { get; init; }
     }
 }

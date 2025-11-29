@@ -108,5 +108,10 @@ public sealed class FileRedirectionHandler : IRedirectionHandler
         /// Gets the path resolver from the inner context.
         /// </summary>
         public IPathResolver PathResolver => _inner.PathResolver;
+
+        /// <summary>
+        /// Gets the command history from the inner context.
+        /// </summary>
+        public IReadOnlyList<string> CommandHistory => _inner.CommandHistory;
     }
 }

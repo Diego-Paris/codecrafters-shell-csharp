@@ -7,6 +7,8 @@ namespace MiniShell.Runtime;
 /// </summary>
 public sealed class ShellContext : IShellContext
 {
+    private readonly List<string> _commandHistory = new();
+
     /// <summary>
     /// Initializes a new shell context, building the command registry and wiring up standard console streams.
     /// </summary>
@@ -63,4 +65,17 @@ public sealed class ShellContext : IShellContext
     /// Gets the path resolver for locating executable files in the system PATH.
     /// </summary>
     public IPathResolver PathResolver { get; }
+
+    /// <summary>
+    /// Gets the command history list.
+    /// </summary>
+    public IReadOnlyList<string> CommandHistory => _commandHistory;
+
+    /// <summary>
+    /// Adds a command to the history.
+    /// </summary>
+    public void AddToHistory(string command)
+    {
+        _commandHistory.Add(command);
+    }
 }

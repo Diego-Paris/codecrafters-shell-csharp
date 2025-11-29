@@ -202,6 +202,7 @@ public class FileRedirectionHandlerTests : IDisposable
         public required TextWriter Out { get; init; }
         public required TextWriter Err { get; init; }
         public required IPathResolver PathResolver { get; init; }
+        public IReadOnlyList<string> CommandHistory { get; init; } = Array.Empty<string>();
     }
 
     private class MockPathResolver : IPathResolver

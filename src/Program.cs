@@ -25,6 +25,7 @@ services.AddSingleton<ICommand, CdCommand>();
 services.AddSingleton<ICommand, EchoCommand>();
 services.AddSingleton<ICommand, ExitCommand>();
 services.AddSingleton<ICommand, GreetCommand>();
+services.AddSingleton<ICommand, HistoryCommand>();
 services.AddSingleton<ICommand, PwdCommand>();
 services.AddSingleton<ICommand, TypeCommand>();
 services.AddSingleton<ICommand, ExternalCommand>();

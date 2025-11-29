@@ -1,4 +1,5 @@
 ﻿using MiniShell.Abstractions;
+using MiniShell.Runtime;
 
 namespace MiniShell;
 
@@ -9,16 +10,19 @@ public sealed class Shell
 {
     private readonly CommandRouter _router;
     private readonly IInputHandler _inputHandler;
+    private readonly ShellContext _context;
 
     /// <summary>
     /// Initializes a new shell instance with the specified command router and input handler.
     /// </summary>
     /// <param name="router">The router responsible for parsing and dispatching commands.</param>
     /// <param name="inputHandler">The input handler for reading user input with tab completion support.</param>
-    public Shell(CommandRouter router, IInputHandler inputHandler)
+    /// <param name="context">The shell context for tracking history.</param>
+    public Shell(CommandRouter router, IInputHandler inputHandler, ShellContext context)
     {
         _router = router;
         _inputHandler = inputHandler;
+        _context = context;
     }
 
     /// <summary>
@@ -31,6 +35,10 @@ public sealed class Shell
         {
             var line = _inputHandler.ReadInput("$ ");
             if (line is null) return Task.FromResult(0);
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                _context.AddToHistory(line);
+            }
             _router.Route(line);
         }
     }

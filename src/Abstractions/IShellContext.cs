@@ -29,4 +29,9 @@ public interface IShellContext
     /// Gets the path resolver for locating executable files in the system PATH.
     /// </summary>
     IPathResolver PathResolver { get; }
+
+    /// <summary>
+    /// Gets the command history list.
+    /// </summary>
+    IReadOnlyList<string> CommandHistory { get; }
 }
