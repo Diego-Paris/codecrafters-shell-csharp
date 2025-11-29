@@ -8,6 +8,8 @@
 
 When you type a command in bash or zsh, a lot happens before that command runs. Building a shell from scratch for the CodeCrafters challenge forced me to think about problems I'd taken for granted: How does tab completion work? Why does pressing the up arrow show previous commands? How does the shell know where to find executables?
 
+Turns out, the answer to all of these is "way more complicated than you'd think."
+
 This post isn't about what the shell does, it's about **why I made specific implementation choices** and what I learned along the way.
 
 **Tech stack:** C# 9.0, .NET Core, Microsoft.Extensions.DependencyInjection
@@ -20,7 +22,7 @@ This post isn't about what the shell does, it's about **why I made specific impl
 
 ### The Decision
 
-Most shell implementations use global state or singletons. I used Microsoft's dependency injection container and constructor injection throughout.
+Most shell implementations use global state or singletons. I went a different route: Microsoft's dependency injection container and constructor injection throughout. Yes, for a command-line shell. Bear with me.
 
 ### Why?
 
@@ -74,7 +76,7 @@ public IEnumerable<string> GetCompletions(string prefix)
 }
 ```
 
-This works. It's also O(n) where n is the number of commands. On my system, there are 2000+ executables in PATH. Every tab press would iterate through all of them.
+This works. It's also O(n) where n is the number of commands. On my system, there are 2000+ executables in PATH. Every tab press would iterate through all of them. Not great, Bob.
 
 ### The Trie Solution
 
@@ -124,7 +126,7 @@ If `LastTabWasMultiMatch` is true and the prefix hasn't changed, the second tab 
 
 ### What I Learned
 
-**Small UX details have complex implementations.** The beep sound, the double-tab behavior, the space after single completion, users don't think about these, but they're load-bearing for the experience.
+**Small UX details have complex implementations.** The beep sound, the double-tab behavior, the space after single completion, users don't think about these, but they're load-bearing for the experience. Turns out the "invisible" features are the ones that take the most work.
 
 ---
 
@@ -138,7 +140,7 @@ If `LastTabWasMultiMatch` is true and the prefix hasn't changed, the second tab 
 - Show partial completions
 - Implement backspace behavior
 
-To build a real shell, I needed to read **individual keystrokes** and manage my own input buffer.
+In other words, `Console.ReadLine()` gives you the finished product with no control over the process. For a real shell, I needed to read **individual keystrokes** and manage my own input buffer.
 
 ### The Implementation
 
@@ -203,7 +205,7 @@ private void HandleUpArrow(string prompt, InputState state)
 
 ### What I Learned
 
-**Input handling is way harder than command execution.** Parsing and running commands is straightforward. Building a good REPL with tab completion, history, and proper cursor management is surprisingly complex.
+**Input handling is way harder than command execution.** Parsing and running commands is straightforward. Building a good REPL with tab completion, history, and proper cursor management is surprisingly complex. I spent more time getting backspace to work correctly than implementing the entire command execution engine. Let that sink in.
 
 **State machines everywhere.** The input handler is essentially a state machine responding to key events. Understanding this early would have simplified the design.
 
@@ -270,7 +272,7 @@ private IEnumerable<string> BuildWindowsCandidates(string command)
 
 ### What I Learned
 
-**Cross-platform code is messier than you think.** Even something as simple as "find this command" requires platform detection and different logic paths.
+**Cross-platform code is messier than you think.** Even something as simple as "find this command" requires platform detection and different logic paths. Write once, run anywhere? More like write once, debug everywhere.
 
 **Environment variables matter.** `PATHEXT` is easy to forget about, but it's critical for Windows shell behavior.
 
@@ -342,7 +344,7 @@ private StreamWriter? CreateWriter(string? filePath, bool append)
 
 ### What I Learned
 
-**Resource cleanup is easy to forget.** Without explicit `Cleanup()` calls, file handles leak silently. Implementing `IDisposable` makes the cleanup contract explicit.
+**Resource cleanup is easy to forget.** Without explicit `Cleanup()` calls, file handles leak silently. Implementing `IDisposable` makes the cleanup contract explicit. Future me thanks past me for this one.
 
 **UX details matter.** Auto-creating directories is a small touch that makes the shell feel polished.
 
@@ -427,7 +429,7 @@ public void MarkLastAppendPosition()
 
 ### What I Learned
 
-**Bash behavior is the spec.** Users expect shells to work like bash. Implementing `HISTFILE` wasn't in the CodeCrafters requirements, but it makes the shell feel complete.
+**Bash behavior is the spec.** Users expect shells to work like bash. Implementing `HISTFILE` wasn't in the CodeCrafters requirements, but it makes the shell feel complete. When your reference implementation is a 30-year-old piece of software, you know you're dealing with some battle-tested UX.
 
 **Incremental operations need careful state tracking.** Append-only requires knowing what's new vs what's already persisted.
 
@@ -437,7 +439,7 @@ public void MarkLastAppendPosition()
 
 ### 1. Watch for Circular Dependencies in DI
 
-I didn't notice the circular dependency (Shell depends on IShellContext, which depends on ICommand, which depends on IHistoryService, which depends back on IShellContext) until the app started hanging during startup. Drawing the dependency graph upfront would have caught this immediately.
+I didn't notice the circular dependency (Shell depends on IShellContext, which depends on ICommand, which depends on IHistoryService, which depends back on IShellContext) until the app started hanging during startup. Nothing says "good morning" like your program freezing at `GetRequiredService<T>()` with zero error messages. Drawing the dependency graph upfront would have caught this immediately.
 
 **Lesson:** For DI-heavy applications, diagram the dependency graph before writing code. Watch for cycles.
 
