@@ -17,48 +17,69 @@ public sealed class CustomInputHandler : IInputHandler
         Console.Write(prompt);
         Console.Out.Flush();
 
-        var buffer = new StringBuilder();
-
-        while (true)
+        TerminalMode.EnableRawMode();
+        try
         {
-            int charCode = Console.Read();
-            if (charCode == -1)
-            {
-                return null;
-            }
+            var buffer = new StringBuilder();
 
-            char ch = (char)charCode;
-
-            if (ch == '\n')
+            while (true)
             {
-                Console.WriteLine();
-                return buffer.ToString();
-            }
-            else if (ch == '\t')
-            {
-                Console.Error.WriteLine($"[DEBUG] TAB received! buffer='{buffer}'");
-                var currentText = buffer.ToString();
-                var completions = _completionProvider.GetCompletions(currentText).ToList();
-                Console.Error.WriteLine($"[DEBUG] Completions: {string.Join(", ", completions)}");
-
-                if (completions.Count > 0)
+                int charCode = Console.Read();
+                if (charCode == -1)
                 {
-                    var completion = completions[0];
-                    var remaining = completion.Substring(currentText.Length);
-                    Console.Error.WriteLine($"[DEBUG] Appending: '{remaining} '");
+                    return null;
+                }
 
-                    buffer.Clear();
-                    buffer.Append(completion);
-                    buffer.Append(' ');
+                char ch = (char)charCode;
 
-                    Console.Write($"{remaining} ");
+                if (ch == '\n' || ch == '\r')
+                {
+                    Console.WriteLine();
+                    return buffer.ToString();
+                }
+                else if (ch == '\t')
+                {
+                    var currentText = buffer.ToString();
+                    var completions = _completionProvider.GetCompletions(currentText).ToList();
+
+                    if (completions.Count > 0)
+                    {
+                        var completion = completions[0];
+                        var remaining = completion.Substring(currentText.Length);
+
+                        for (int i = 0; i < buffer.Length; i++)
+                        {
+                            Console.Write("\b \b");
+                        }
+
+                        buffer.Clear();
+                        buffer.Append(completion);
+                        buffer.Append(' ');
+
+                        Console.Write($"{completion} ");
+                        Console.Out.Flush();
+                    }
+                }
+                else if (ch == '\b' || ch == (char)127) // Backspace or DEL
+                {
+                    if (buffer.Length > 0)
+                    {
+                        buffer.Length--;
+                        Console.Write("\b \b");
+                        Console.Out.Flush();
+                    }
+                }
+                else if (!char.IsControl(ch))
+                {
+                    buffer.Append(ch);
+                    Console.Write(ch);
                     Console.Out.Flush();
                 }
             }
-            else if (!char.IsControl(ch))
-            {
-                buffer.Append(ch);
-            }
+        }
+        finally
+        {
+            TerminalMode.DisableRawMode();
         }
     }
 }
