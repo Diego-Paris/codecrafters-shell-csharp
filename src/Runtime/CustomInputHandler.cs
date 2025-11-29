@@ -57,7 +57,7 @@ public sealed class CustomInputHandler : IInputHandler
                     if (lastTabWasMultiMatch && lastPrefix == prefix)
                     {
                         _console.WriteLine();
-                        _console.Write(string.Join("  ", completions));
+                        _console.Write(string.Join("  ", completions.OrderBy(c => c)));
                         _console.WriteLine();
                         _console.Write(prompt + buffer.ToString());
 

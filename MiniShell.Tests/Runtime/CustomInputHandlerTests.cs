@@ -113,9 +113,9 @@ public class CustomInputHandlerTests
     }
 
     [Fact]
-    public void ReadInput_SecondTabWithMultipleMatches_ShouldDisplayAllMatches()
+    public void ReadInput_SecondTabWithMultipleMatches_ShouldDisplayAllMatchesSorted()
     {
-        var provider = new MockCompletionProvider(new[] { "xyz_bar", "xyz_baz", "xyz_quz" });
+        var provider = new MockCompletionProvider(new[] { "xyz_quz", "xyz_bar", "xyz_baz" });
         var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '\t', '\r' });
         var handler = new CustomInputHandler(provider, mockConsole);
 
