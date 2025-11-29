@@ -15,73 +15,42 @@ public sealed class CustomInputHandler : IInputHandler
     public string? ReadInput(string prompt)
     {
         Console.Write(prompt);
-        Console.Out.Flush();
+        var buffer = new StringBuilder();
 
-        TerminalMode.EnableRawMode();
-        try
+        while (true)
         {
-            var buffer = new StringBuilder();
+            var key = Console.ReadKey(intercept: true);
 
-            while (true)
+            if (key.Key == ConsoleKey.Enter)
             {
-                int charCode = Console.Read();
-                if (charCode == -1)
+                Console.WriteLine();
+                return buffer.ToString();
+            }
+            else if (key.Key == ConsoleKey.Tab)
+            {
+                var prefix = buffer.ToString();
+                var completions = _completionProvider.GetCompletions(prefix).ToList();
+
+                if (completions.Count > 0)
                 {
-                    return null;
-                }
+                    var match = completions[0];
+                    var remaining = match.Substring(prefix.Length);
 
-                char ch = (char)charCode;
-
-                if (ch == '\n' || ch == '\r')
-                {
-                    Console.WriteLine();
-                    return buffer.ToString();
-                }
-                else if (ch == '\t')
-                {
-                    var currentText = buffer.ToString();
-                    var completions = _completionProvider.GetCompletions(currentText).ToList();
-
-                    if (completions.Count > 0)
-                    {
-                        var completion = completions[0];
-                        var remaining = completion.Substring(currentText.Length);
-
-                        // Move cursor back to start of word
-                        for (int i = 0; i < currentText.Length; i++)
-                        {
-                            Console.Write("\b");
-                        }
-
-                        // Write completion and space
-                        Console.Write($"{completion} ");
-                        Console.Out.Flush();
-
-                        buffer.Clear();
-                        buffer.Append(completion);
-                        buffer.Append(' ');
-                    }
-                }
-                else if (ch == '\b' || ch == (char)127) // Backspace or DEL
-                {
-                    if (buffer.Length > 0)
-                    {
-                        buffer.Length--;
-                        Console.Write("\b \b");
-                        Console.Out.Flush();
-                    }
-                }
-                else if (!char.IsControl(ch))
-                {
-                    buffer.Append(ch);
-                    Console.Write(ch);
-                    Console.Out.Flush();
+                    Console.Write(remaining + " ");
+                    buffer.Append(remaining);
+                    buffer.Append(' ');
                 }
             }
-        }
-        finally
-        {
-            TerminalMode.DisableRawMode();
+            else if (key.Key == ConsoleKey.Backspace && buffer.Length > 0)
+            {
+                Console.Write("\b \b");
+                buffer.Length--;
+            }
+            else if (!char.IsControl(key.KeyChar))
+            {
+                Console.Write(key.KeyChar);
+                buffer.Append(key.KeyChar);
+            }
         }
     }
 }
