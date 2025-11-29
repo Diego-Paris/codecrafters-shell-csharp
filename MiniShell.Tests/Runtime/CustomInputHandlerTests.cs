@@ -60,9 +60,9 @@ public class CustomInputHandlerTests
     }
 
     [Fact]
-    public void ReadInput_EmptyPrefixTab_ShouldNotRingBell()
+    public void ReadInput_EmptyPrefixTabWithSingleMatch_ShouldComplete()
     {
-        var provider = new MockCompletionProvider(new[] { "echo", "exit" });
+        var provider = new MockCompletionProvider(new[] { "echo" });
         var mockConsole = new MockConsole(new[] { '\t', '\r' });
         var handler = new CustomInputHandler(provider, mockConsole);
 
@@ -97,6 +97,113 @@ public class CustomInputHandlerTests
         Assert.Equal("echo hello", result);
         Assert.Contains("$ ", mockConsole.Output);
         Assert.Contains("o ", mockConsole.Output);
+    }
+
+    [Fact]
+    public void ReadInput_FirstTabWithMultipleMatches_ShouldRingBell()
+    {
+        var provider = new MockCompletionProvider(new[] { "xyz_bar", "xyz_baz", "xyz_quz" });
+        var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Contains('\x07', mockConsole.Output);
+        Assert.Equal("xyz_", result);
+    }
+
+    [Fact]
+    public void ReadInput_SecondTabWithMultipleMatches_ShouldDisplayAllMatches()
+    {
+        var provider = new MockCompletionProvider(new[] { "xyz_bar", "xyz_baz", "xyz_quz" });
+        var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        var output = mockConsole.Output;
+        Assert.Contains("xyz_bar  xyz_baz  xyz_quz", output);
+        Assert.Contains('\x07', output);
+        Assert.Equal("xyz_", result);
+    }
+
+    [Fact]
+    public void ReadInput_SecondTabWithMultipleMatches_ShouldReprintPrompt()
+    {
+        var provider = new MockCompletionProvider(new[] { "abc", "abd", "abe" });
+        var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        var output = mockConsole.Output;
+        var promptCount = CountOccurrences(output, "$ ");
+        Assert.True(promptCount >= 2, $"Expected at least 2 prompts, found {promptCount}");
+        Assert.Contains("$ ab", output);
+    }
+
+    [Fact]
+    public void ReadInput_ThirdTabAfterDisplayingMatches_ShouldRingBellAgain()
+    {
+        var provider = new MockCompletionProvider(new[] { "test1", "test2", "test3" });
+        var mockConsole = new MockConsole(new[] { 't', 'e', 's', 't', '\t', '\t', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        var bellCount = mockConsole.Output.Count(c => c == '\x07');
+        Assert.Equal(2, bellCount);
+    }
+
+    [Fact]
+    public void ReadInput_TabAfterTypingMoreCharacters_ShouldResetTabState()
+    {
+        var provider = new MockCompletionProvider(new[] { "abc", "abd", "xyz" });
+        var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', 'c', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Equal("abc ", result);
+        Assert.Contains('\x07', mockConsole.Output);
+    }
+
+    [Fact]
+    public void ReadInput_MultipleMatchesWithDifferentPrefixes_HandlesCorrectly()
+    {
+        var provider = new MockCompletionProvider(new[] { "echo", "exit", "export" });
+        var mockConsole = new MockConsole(new[] { 'e', '\t', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Contains("echo  exit  export", mockConsole.Output);
+        Assert.Equal("e", result);
+    }
+
+    [Fact]
+    public void ReadInput_BackspaceAfterFirstTab_ShouldResetTabState()
+    {
+        var provider = new MockCompletionProvider(new[] { "abc", "abd" });
+        var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', '\b', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        var bellCount = mockConsole.Output.Count(c => c == '\x07');
+        Assert.Equal(2, bellCount);
+    }
+
+    private static int CountOccurrences(string text, string pattern)
+    {
+        int count = 0;
+        int index = 0;
+        while ((index = text.IndexOf(pattern, index, StringComparison.Ordinal)) != -1)
+        {
+            count++;
+            index += pattern.Length;
+        }
+        return count;
     }
 
     private class MockConsole : IConsole
