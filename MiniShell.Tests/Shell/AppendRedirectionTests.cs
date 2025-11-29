@@ -1,5 +1,6 @@
 using MiniShell.Abstractions;
 using MiniShell.Commands;
+using MiniShell.Parsing;
 using MiniShell.Runtime;
 
 namespace MiniShell.Tests.Shell;
@@ -34,7 +35,8 @@ public class AppendRedirectionTests : IDisposable
             PathResolver = new PathResolver()
         };
 
-        _router = new CommandRouter(context);
+        var tokenizer = new ShellTokenizer();
+        _router = new CommandRouter(context, tokenizer);
     }
 
     public void Dispose()

@@ -181,10 +181,11 @@ public class TabCompletionIntegrationTests
 
     private IShellContext CreateShellContext()
     {
+        var mockHistoryService = new MockHistoryService();
         var commands = new ICommand[]
         {
             new MiniShell.Commands.EchoCommand(),
-            new MiniShell.Commands.ExitCommand(),
+            new MiniShell.Commands.ExitCommand(mockHistoryService),
             new MiniShell.Commands.CdCommand(),
             new MiniShell.Commands.PwdCommand(),
             new MiniShell.Commands.TypeCommand(),
@@ -193,5 +194,12 @@ public class TabCompletionIntegrationTests
 
         var pathResolver = new PathResolver();
         return new ShellContext(commands, pathResolver);
+    }
+
+    private sealed class MockHistoryService : IHistoryService
+    {
+        public void LoadFromFile() { }
+        public void SaveToFile() { }
+        public void AppendNewCommandsToFile() { }
     }
 }

@@ -101,9 +101,6 @@ public sealed class ShellContext : IShellContext
         _lastAppendIndex = _commandHistory.Count;
     }
 
-    /// <summary>
-    /// Saves the command history to the HISTFILE if set.
-    /// </summary>
     public void SaveHistoryToFile()
     {
         var histFile = Environment.GetEnvironmentVariable("HISTFILE");

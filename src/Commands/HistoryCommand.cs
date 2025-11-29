@@ -12,61 +12,17 @@ public sealed class HistoryCommand : ICommand
     {
         if (args.Length >= 2 && args[0] == "-r")
         {
-            var filePath = args[1];
-            if (!File.Exists(filePath))
-            {
-                ctx.Err.WriteLine($"history: {filePath}: No such file or directory");
-                return 1;
-            }
-
-            var lines = File.ReadAllLines(filePath);
-            foreach (var line in lines)
-            {
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    ctx.AddToHistory(line);
-                }
-            }
-            return 0;
+            return LoadFromFile(args[1], ctx);
         }
 
         if (args.Length >= 2 && args[0] == "-w")
         {
-            var filePath = args[1];
-            var directory = Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            var commandHistory = ctx.CommandHistory;
-            var lines = new List<string>(commandHistory.Count);
-            foreach (var cmd in commandHistory)
-            {
-                lines.Add(cmd);
-            }
-
-            File.WriteAllLines(filePath, lines);
-            return 0;
+            return WriteToFile(args[1], ctx);
         }
 
         if (args.Length >= 2 && args[0] == "-a")
         {
-            var filePath = args[1];
-            var directory = Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            var newCommands = ctx.GetCommandsSinceLastAppend();
-            if (newCommands.Count > 0)
-            {
-                File.AppendAllLines(filePath, newCommands);
-            }
-
-            ctx.MarkLastAppendPosition();
-            return 0;
+            return AppendToFile(args[1], ctx);
         }
 
         var history = ctx.CommandHistory;
@@ -82,5 +38,53 @@ public sealed class HistoryCommand : ICommand
             ctx.Out.WriteLine($"{i + 1,5}  {history[i]}");
         }
         return 0;
+    }
+
+    private static int LoadFromFile(string filePath, IShellContext ctx)
+    {
+        if (!File.Exists(filePath))
+        {
+            ctx.Err.WriteLine($"history: {filePath}: No such file or directory");
+            return 1;
+        }
+
+        var lines = File.ReadAllLines(filePath);
+        foreach (var line in lines)
+        {
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                ctx.AddToHistory(line);
+            }
+        }
+        return 0;
+    }
+
+    private static int WriteToFile(string filePath, IShellContext ctx)
+    {
+        EnsureDirectoryExists(filePath);
+        File.WriteAllLines(filePath, ctx.CommandHistory);
+        return 0;
+    }
+
+    private static int AppendToFile(string filePath, IShellContext ctx)
+    {
+        var newCommands = ctx.GetCommandsSinceLastAppend();
+        if (newCommands.Count > 0)
+        {
+            EnsureDirectoryExists(filePath);
+            File.AppendAllLines(filePath, newCommands);
+        }
+
+        ctx.MarkLastAppendPosition();
+        return 0;
+    }
+
+    private static void EnsureDirectoryExists(string filePath)
+    {
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
     }
 }

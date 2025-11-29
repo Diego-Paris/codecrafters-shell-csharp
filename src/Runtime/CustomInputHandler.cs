@@ -21,14 +21,24 @@ public sealed class CustomInputHandler : IInputHandler
         _console = console;
     }
 
+    private sealed class InputState
+    {
+        public StringBuilder Buffer { get; } = new();
+        public string LastPrefix { get; set; } = string.Empty;
+        public bool LastTabWasMultiMatch { get; set; }
+        public int HistoryIndex { get; set; }
+        public string CurrentInput { get; set; } = string.Empty;
+
+        public InputState()
+        {
+            HistoryIndex = int.MaxValue;
+        }
+    }
+
     public string? ReadInput(string prompt)
     {
         _console.Write(prompt);
-        var buffer = new StringBuilder();
-        var lastPrefix = string.Empty;
-        var lastTabWasMultiMatch = false;
-        var historyIndex = _context.CommandHistory.Count;
-        var currentInput = string.Empty;
+        var state = new InputState { HistoryIndex = _context.CommandHistory.Count };
 
         while (true)
         {
@@ -37,126 +47,160 @@ public sealed class CustomInputHandler : IInputHandler
             if (key.Key == ConsoleKey.Enter)
             {
                 _console.WriteLine();
-                return buffer.ToString();
+                return state.Buffer.ToString();
             }
-            else if (key.Key == ConsoleKey.UpArrow)
+
+            if (key.Key == ConsoleKey.UpArrow)
             {
-                if (historyIndex > 0)
-                {
-                    if (historyIndex == _context.CommandHistory.Count)
-                    {
-                        currentInput = buffer.ToString();
-                    }
-
-                    historyIndex--;
-                    ClearCurrentLine(prompt, buffer.Length);
-                    buffer.Clear();
-                    buffer.Append(_context.CommandHistory[historyIndex]);
-                    _console.Write(prompt + buffer.ToString());
-
-                    lastTabWasMultiMatch = false;
-                    lastPrefix = string.Empty;
-                }
+                HandleUpArrow(prompt, state);
             }
             else if (key.Key == ConsoleKey.DownArrow)
             {
-                if (historyIndex < _context.CommandHistory.Count)
-                {
-                    historyIndex++;
-                    ClearCurrentLine(prompt, buffer.Length);
-                    buffer.Clear();
-
-                    if (historyIndex < _context.CommandHistory.Count)
-                    {
-                        buffer.Append(_context.CommandHistory[historyIndex]);
-                    }
-                    else
-                    {
-                        buffer.Append(currentInput);
-                    }
-
-                    _console.Write(prompt + buffer.ToString());
-
-                    lastTabWasMultiMatch = false;
-                    lastPrefix = string.Empty;
-                }
+                HandleDownArrow(prompt, state);
             }
             else if (key.Key == ConsoleKey.Tab)
             {
-                var prefix = buffer.ToString();
-                var completions = _completionProvider.GetCompletions(prefix).ToList();
-
-                if (completions.Count == 1)
-                {
-                    var match = completions[0];
-                    var remaining = match.Substring(prefix.Length);
-
-                    _console.Write(remaining + " ");
-                    buffer.Append(remaining);
-                    buffer.Append(' ');
-
-                    lastTabWasMultiMatch = false;
-                    lastPrefix = string.Empty;
-                }
-                else if (completions.Count > 1)
-                {
-                    var commonPrefix = GetLongestCommonPrefix(completions);
-                    var remaining = commonPrefix.Substring(prefix.Length);
-
-                    if (remaining.Length > 0)
-                    {
-                        _console.Write(remaining);
-                        buffer.Append(remaining);
-
-                        var newCompletions = _completionProvider.GetCompletions(buffer.ToString()).ToList();
-                        if (newCompletions.Count == 1)
-                        {
-                            _console.Write(" ");
-                            buffer.Append(' ');
-                        }
-
-                        lastTabWasMultiMatch = false;
-                        lastPrefix = string.Empty;
-                    }
-                    else if (lastTabWasMultiMatch && lastPrefix == prefix)
-                    {
-                        _console.WriteLine();
-                        _console.Write(string.Join("  ", completions.OrderBy(c => c)));
-                        _console.WriteLine();
-                        _console.Write(prompt + buffer.ToString());
-
-                        lastTabWasMultiMatch = false;
-                        lastPrefix = string.Empty;
-                    }
-                    else
-                    {
-                        _console.Write('\x07');
-                        lastTabWasMultiMatch = true;
-                        lastPrefix = prefix;
-                    }
-                }
-                else
-                {
-                    _console.Write('\x07');
-                    lastTabWasMultiMatch = false;
-                    lastPrefix = string.Empty;
-                }
+                HandleTab(prompt, state);
             }
-            else if (key.Key == ConsoleKey.Backspace && buffer.Length > 0)
+            else if (key.Key == ConsoleKey.Backspace && state.Buffer.Length > 0)
             {
-                _console.Write("\b \b");
-                buffer.Length--;
-                lastTabWasMultiMatch = false;
-                lastPrefix = string.Empty;
+                HandleBackspace(state);
             }
             else if (!char.IsControl(key.KeyChar))
             {
-                _console.Write(key.KeyChar);
-                buffer.Append(key.KeyChar);
-                lastTabWasMultiMatch = false;
-                lastPrefix = string.Empty;
+                HandleCharacter(key.KeyChar, state);
             }
         }
+    }
+
+    private void HandleUpArrow(string prompt, InputState state)
+    {
+        if (state.HistoryIndex > 0)
+        {
+            if (state.HistoryIndex == _context.CommandHistory.Count)
+            {
+                state.CurrentInput = state.Buffer.ToString();
+            }
+
+            state.HistoryIndex--;
+            ClearCurrentLine(prompt, state.Buffer.Length);
+            state.Buffer.Clear();
+            state.Buffer.Append(_context.CommandHistory[state.HistoryIndex]);
+            _console.Write(prompt + state.Buffer.ToString());
+
+            state.LastTabWasMultiMatch = false;
+            state.LastPrefix = string.Empty;
+        }
+    }
+
+    private void HandleDownArrow(string prompt, InputState state)
+    {
+        if (state.HistoryIndex < _context.CommandHistory.Count)
+        {
+            state.HistoryIndex++;
+            ClearCurrentLine(prompt, state.Buffer.Length);
+            state.Buffer.Clear();
+
+            if (state.HistoryIndex < _context.CommandHistory.Count)
+            {
+                state.Buffer.Append(_context.CommandHistory[state.HistoryIndex]);
+            }
+            else
+            {
+                state.Buffer.Append(state.CurrentInput);
+            }
+
+            _console.Write(prompt + state.Buffer.ToString());
+
+            state.LastTabWasMultiMatch = false;
+            state.LastPrefix = string.Empty;
+        }
+    }
+
+    private void HandleTab(string prompt, InputState state)
+    {
+        var prefix = state.Buffer.ToString();
+        var completions = _completionProvider.GetCompletions(prefix).ToList();
+
+        if (completions.Count == 1)
+        {
+            HandleSingleCompletion(completions[0], prefix, state);
+        }
+        else if (completions.Count > 1)
+        {
+            HandleMultipleCompletions(prompt, prefix, completions, state);
+        }
+        else
+        {
+            _console.Write('\x07');
+            state.LastTabWasMultiMatch = false;
+            state.LastPrefix = string.Empty;
+        }
+    }
+
+    private void HandleSingleCompletion(string match, string prefix, InputState state)
+    {
+        var remaining = match.Substring(prefix.Length);
+        _console.Write(remaining + " ");
+        state.Buffer.Append(remaining);
+        state.Buffer.Append(' ');
+
+        state.LastTabWasMultiMatch = false;
+        state.LastPrefix = string.Empty;
+    }
+
+    private void HandleMultipleCompletions(string prompt, string prefix, List<string> completions, InputState state)
+    {
+        var commonPrefix = GetLongestCommonPrefix(completions);
+        var remaining = commonPrefix.Substring(prefix.Length);
+
+        if (remaining.Length > 0)
+        {
+            _console.Write(remaining);
+            state.Buffer.Append(remaining);
+
+            var newCompletions = _completionProvider.GetCompletions(state.Buffer.ToString()).ToList();
+            if (newCompletions.Count == 1)
+            {
+                _console.Write(" ");
+                state.Buffer.Append(' ');
+            }
+
+            state.LastTabWasMultiMatch = false;
+            state.LastPrefix = string.Empty;
+        }
+        else if (state.LastTabWasMultiMatch && state.LastPrefix == prefix)
+        {
+            _console.WriteLine();
+            _console.Write(string.Join("  ", completions.OrderBy(c => c)));
+            _console.WriteLine();
+            _console.Write(prompt + state.Buffer.ToString());
+
+            state.LastTabWasMultiMatch = false;
+            state.LastPrefix = string.Empty;
+        }
+        else
+        {
+            _console.Write('\x07');
+            state.LastTabWasMultiMatch = true;
+            state.LastPrefix = prefix;
+        }
+    }
+
+    private void HandleBackspace(InputState state)
+    {
+        _console.Write("\b \b");
+        state.Buffer.Length--;
+        state.LastTabWasMultiMatch = false;
+        state.LastPrefix = string.Empty;
+    }
+
+    private void HandleCharacter(char ch, InputState state)
+    {
+        _console.Write(ch);
+        state.Buffer.Append(ch);
+        state.LastTabWasMultiMatch = false;
+        state.LastPrefix = string.Empty;
     }
 
     private static string GetLongestCommonPrefix(List<string> strings)

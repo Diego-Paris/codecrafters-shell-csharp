@@ -11,6 +11,7 @@ public sealed class Shell
     private readonly CommandRouter _router;
     private readonly IInputHandler _inputHandler;
     private readonly ShellContext _context;
+    private readonly IHistoryService _historyService;
 
     /// <summary>
     /// Initializes a new shell instance with the specified command router and input handler.
@@ -18,11 +19,13 @@ public sealed class Shell
     /// <param name="router">The router responsible for parsing and dispatching commands.</param>
     /// <param name="inputHandler">The input handler for reading user input with tab completion support.</param>
     /// <param name="context">The shell context for tracking history.</param>
-    public Shell(CommandRouter router, IInputHandler inputHandler, ShellContext context)
+    /// <param name="historyService">The history service for loading and saving command history.</param>
+    public Shell(CommandRouter router, IInputHandler inputHandler, ShellContext context, IHistoryService historyService)
     {
         _router = router;
         _inputHandler = inputHandler;
         _context = context;
+        _historyService = historyService;
     }
 
     /// <summary>
@@ -31,7 +34,7 @@ public sealed class Shell
     /// <returns>Exit code (0 for normal termination, non-zero for errors).</returns>
     public Task<int> RunAsync()
     {
-        LoadHistoryFromFile();
+        _historyService.LoadFromFile();
 
         while (true)
         {
@@ -42,24 +45,6 @@ public sealed class Shell
                 _context.AddToHistory(line);
             }
             _router.Route(line);
-        }
-    }
-
-    private void LoadHistoryFromFile()
-    {
-        var histFile = Environment.GetEnvironmentVariable("HISTFILE");
-        if (string.IsNullOrEmpty(histFile) || !File.Exists(histFile))
-        {
-            return;
-        }
-
-        var lines = File.ReadAllLines(histFile);
-        foreach (var line in lines)
-        {
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                _context.AddToHistory(line);
-            }
         }
     }
 }

@@ -4,6 +4,13 @@ using MiniShell.Runtime;
 
 namespace MiniShell.Tests.Runtime;
 
+file sealed class MockHistoryService : IHistoryService
+{
+    public void LoadFromFile() { }
+    public void SaveToFile() { }
+    public void AppendNewCommandsToFile() { }
+}
+
 public class CommandCompletionProviderTests
 {
     [Theory]
@@ -127,10 +134,11 @@ public class CommandCompletionProviderTests
 
     private IShellContext CreateShellContext()
     {
+        var mockHistoryService = new MockHistoryService();
         var commands = new ICommand[]
         {
             new MiniShell.Commands.EchoCommand(),
-            new MiniShell.Commands.ExitCommand(),
+            new MiniShell.Commands.ExitCommand(mockHistoryService),
             new MiniShell.Commands.CdCommand(),
             new MiniShell.Commands.PwdCommand(),
             new MiniShell.Commands.TypeCommand(),

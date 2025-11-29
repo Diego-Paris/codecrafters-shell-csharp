@@ -7,14 +7,17 @@ using MiniShell;
 using MiniShell.Abstractions;
 using MiniShell.Commands;
 using MiniShell.DataStructures;
+using MiniShell.Parsing;
 using MiniShell.Runtime;
 
 var services = new ServiceCollection();
 
 // infrastructure
 services.AddSingleton<IPathResolver, PathResolver>();
+services.AddSingleton<ITokenizer, ShellTokenizer>();
 services.AddSingleton<ShellContext>();
 services.AddSingleton<IShellContext>(sp => sp.GetRequiredService<ShellContext>());
+services.AddSingleton<IHistoryService, HistoryService>();
 
 // tab completion
 services.AddSingleton<ICompletionTrie, CompletionTrie>();

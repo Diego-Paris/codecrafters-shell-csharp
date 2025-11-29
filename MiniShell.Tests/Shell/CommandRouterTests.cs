@@ -1,5 +1,6 @@
 using MiniShell;
 using MiniShell.Abstractions;
+using MiniShell.Parsing;
 using MiniShell.Runtime;
 
 namespace MiniShell.Tests.Shell;
@@ -29,7 +30,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("   ", new string[] { })]
     public void Tokenize_BasicCommands_ShouldSplitByWhitespace(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -39,7 +41,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("  echo  hello  ", new[] { "echo", "hello" })]
     public void Tokenize_MultipleSpaces_ShouldCollapseWhitespace(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -51,7 +54,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("echo hello\"\"world", new[] { "echo", "helloworld" })]
     public void Tokenize_DoubleQuotes_ShouldPreserveSpacesAndConcatenate(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -63,7 +67,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("echo hello''world", new[] { "echo", "helloworld" })]
     public void Tokenize_SingleQuotes_ShouldPreserveSpacesAndConcatenate(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -72,7 +77,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("echo \"it's fine\"", new[] { "echo", "it's fine" })]
     public void Tokenize_NestedQuotes_ShouldTreatOppositeQuoteAsLiteral(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -81,7 +87,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("cat '/tmp/file name' '/tmp/another file'", new[] { "cat", "/tmp/file name", "/tmp/another file" })]
     public void Tokenize_SingleQuotedFilePaths_ShouldPreserveSpaces(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -95,7 +102,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("echo before\\ after", new[] { "echo", "before after" })]
     public void Tokenize_BackslashEscaping_ShouldEscapeSpecialCharacters(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -108,7 +116,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("cat \"/tmp/rat/f\\\\n58\" \"/tmp/rat/f\\\\60\" \"/tmp/rat/f'\\\\20\"", new[] { "cat", "/tmp/rat/f\\n58", "/tmp/rat/f\\60", "/tmp/rat/f'\\20" })]
     public void Tokenize_BackslashEscaping_MatchesCodeCraftersRequirements(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -117,7 +126,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("echo 'test\\nvalue'", new[] { "echo", "test\\nvalue" })]
     public void Tokenize_BackslashInsideSingleQuotes_ShouldNotEscape(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -127,7 +137,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("cat file.txt > /tmp/foo/bar.md", new[] { "cat", "file.txt", ">", "/tmp/foo/bar.md" })]
     public void Tokenize_OutputRedirection_ShouldSplitRedirectionOperator(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -137,7 +148,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("echo 'Hello James' 1> /tmp/foo/foo.md", new[] { "echo", "Hello James", "1>", "/tmp/foo/foo.md" })]
     public void Tokenize_OutputRedirectionWithFileDescriptor_ShouldSplitRedirectionOperator(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -147,7 +159,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("cat file1 file2>combined.txt", new[] { "cat", "file1", "file2>combined.txt" })]
     public void Tokenize_OutputRedirectionWithoutSpaces_CurrentBehavior(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -156,7 +169,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("cat /tmp/baz/blueberry nonexistent 1> /tmp/foo/quz.md", new[] { "cat", "/tmp/baz/blueberry", "nonexistent", "1>", "/tmp/foo/quz.md" })]
     public void Tokenize_OutputRedirectionWithStderr_ShouldSplitRedirectionOperator(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -165,7 +179,8 @@ public class CommandRouterTests : IDisposable
     [InlineData("echo test 1> \"/tmp/foo bar/output.md\"", new[] { "echo", "test", "1>", "/tmp/foo bar/output.md" })]
     public void Tokenize_OutputRedirectionWithQuotedPaths_ShouldPreserveSpaces(string input, string[] expected)
     {
-        var result = CommandRouter.Tokenize(input);
+        var tokenizer = new ShellTokenizer();
+        var result = tokenizer.Tokenize(input);
         Assert.Equal(expected, result);
     }
 
@@ -175,7 +190,8 @@ public class CommandRouterTests : IDisposable
         // Arrange
         var outputFile = Path.Combine(_testDirectory, "output.txt");
         var ctx = CreateShellContext();
-        var router = new CommandRouter(ctx);
+        var tokenizer = new ShellTokenizer();
+        var router = new CommandRouter(ctx, tokenizer);
 
         // Act
         var exitCode = router.Route($"echo hello > \"{outputFile}\"");
@@ -192,7 +208,8 @@ public class CommandRouterTests : IDisposable
     {
         var outputFile = Path.Combine(_testDirectory, "output.txt");
         var ctx = CreateShellContext();
-        var router = new CommandRouter(ctx);
+        var tokenizer = new ShellTokenizer();
+        var router = new CommandRouter(ctx, tokenizer);
 
         var exitCode = router.Route($"echo 'Hello James' 1> \"{outputFile}\"");
 
@@ -211,7 +228,8 @@ public class CommandRouterTests : IDisposable
 
         var outputFile = Path.Combine(_testDirectory, "output.txt");
         var ctx = CreateShellContext();
-        var router = new CommandRouter(ctx);
+        var tokenizer = new ShellTokenizer();
+        var router = new CommandRouter(ctx, tokenizer);
 
         // Act - cat with one existing file and one nonexistent
         var exitCode = router.Route($"cat \"{existingFile}\" nonexistent 1> \"{outputFile}\"");
@@ -234,7 +252,8 @@ public class CommandRouterTests : IDisposable
         File.WriteAllText(outputFile, "old content");
 
         var ctx = CreateShellContext();
-        var router = new CommandRouter(ctx);
+        var tokenizer = new ShellTokenizer();
+        var router = new CommandRouter(ctx, tokenizer);
 
         // Act
         var exitCode = router.Route($"echo new content > \"{outputFile}\"");
@@ -248,17 +267,25 @@ public class CommandRouterTests : IDisposable
 
     private IShellContext CreateShellContext()
     {
+        var mockHistoryService = new MockHistoryService();
         var commands = new ICommand[]
         {
             new MiniShell.Commands.EchoCommand(),
             new MiniShell.Commands.PwdCommand(),
             new MiniShell.Commands.CdCommand(),
             new MiniShell.Commands.TypeCommand(),
-            new MiniShell.Commands.ExitCommand(),
+            new MiniShell.Commands.ExitCommand(mockHistoryService),
             new MiniShell.Commands.ExternalCommand()
         };
 
         var pathResolver = new PathResolver();
         return new ShellContext(commands, pathResolver);
+    }
+
+    private sealed class MockHistoryService : IHistoryService
+    {
+        public void LoadFromFile() { }
+        public void SaveToFile() { }
+        public void AppendNewCommandsToFile() { }
     }
 }
