@@ -49,9 +49,10 @@ Or use the provided script:
 
 ### 1. Tab Completion with Trie Matching
 
+![Tab Completion Demo](assets/tab-completion.gif)
+
 **Demo commands:**
 ```sh
-# [DEMO_PLACEHOLDER: Record showing tab completion]
 # Type 'ec' then press TAB (should complete to 'echo ')
 # Type 'e' then press TAB twice (should show all commands starting with 'e')
 # Type 'pw' then press TAB (should complete to 'pwd ')
@@ -61,9 +62,10 @@ Or use the provided script:
 
 ### 2. Command History with Arrow Keys
 
+![Command History Demo](assets/command-history.gif)
+
 **Demo commands:**
 ```sh
-# [DEMO_PLACEHOLDER: Record showing history navigation]
 export HISTFILE=~/.minishell_history
 echo "first command"
 echo "second command"
@@ -77,9 +79,10 @@ echo "second command"
 
 ### 3. I/O Redirection with Auto-Directory Creation
 
+![I/O Redirection Demo](assets/io-redirection.gif)
+
 **Demo commands:**
 ```sh
-# [DEMO_PLACEHOLDER: Record showing redirection]
 # stdout redirection
 echo "hello world" > output.txt
 cat output.txt
@@ -101,9 +104,10 @@ cat /tmp/deep/nested/path/file.txt
 
 ### 4. Pipeline Execution
 
+![Pipeline Execution Demo](assets/pipeline-execution.gif)
+
 **Demo commands:**
 ```sh
-# [DEMO_PLACEHOLDER: Record showing pipelines]
 echo "hello world" | tr 'a-z' 'A-Z'
 cat file.txt | grep "pattern" | wc -l
 ```
@@ -112,9 +116,10 @@ cat file.txt | grep "pattern" | wc -l
 
 ### 5. Cross-Platform PATH Resolution
 
+![PATH Resolution Demo](assets/path-resolution.gif)
+
 **Demo commands:**
 ```sh
-# [DEMO_PLACEHOLDER: Record showing PATH resolution]
 type echo      # shows built-in
 type cat       # shows path to executable
 type ls        # shows path (different on Windows vs Unix)
@@ -127,9 +132,10 @@ type ls        # shows path (different on Windows vs Unix)
 
 ### 6. Built-in Commands
 
+![Built-in Commands Demo](assets/builtin-commands.gif)
+
 **Demo commands:**
 ```sh
-# [DEMO_PLACEHOLDER: Record showing built-ins]
 pwd                    # print working directory
 cd /tmp               # change directory
 pwd                   # verify change
