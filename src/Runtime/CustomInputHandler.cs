@@ -42,17 +42,13 @@ public sealed class CustomInputHandler : IInputHandler
                 if (completions.Count > 0)
                 {
                     var completion = completions[0];
-
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        Console.Write("\b \b");
-                    }
+                    var remaining = completion.Substring(currentText.Length);
 
                     buffer.Clear();
                     buffer.Append(completion);
                     buffer.Append(' ');
 
-                    Console.Write($"{completion} ");
+                    Console.Write($"{remaining} ");
                     Console.Out.Flush();
                 }
             }
