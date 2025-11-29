@@ -19,6 +19,7 @@ public sealed class CustomInputHandler : IInputHandler
 
         var buffer = new StringBuilder();
         var isInteractive = !Console.IsInputRedirected;
+        var hasEchoed = false;
 
         while (true)
         {
@@ -60,7 +61,11 @@ public sealed class CustomInputHandler : IInputHandler
 
             if (ch == '\n')
             {
-                if (!isInteractive) Console.WriteLine();
+                if (!hasEchoed && !isInteractive)
+                {
+                    Console.Write(buffer.ToString());
+                }
+                Console.WriteLine();
                 return buffer.ToString();
             }
             else if (ch == '\t')
@@ -72,7 +77,7 @@ public sealed class CustomInputHandler : IInputHandler
                 {
                     var completion = completions[0];
 
-                    if (isInteractive)
+                    if (isInteractive && hasEchoed)
                     {
                         for (int i = 0; i < buffer.Length; i++)
                         {
@@ -86,6 +91,15 @@ public sealed class CustomInputHandler : IInputHandler
 
                     Console.Write($"{completion} ");
                     Console.Out.Flush();
+                    hasEchoed = true;
+                }
+                else if (!hasEchoed)
+                {
+                    Console.Write(currentText);
+                    Console.Write(" ");
+                    Console.Out.Flush();
+                    buffer.Append(' ');
+                    hasEchoed = true;
                 }
             }
             else if (!char.IsControl(ch))
@@ -94,6 +108,7 @@ public sealed class CustomInputHandler : IInputHandler
                 if (isInteractive)
                 {
                     Console.Write(ch);
+                    hasEchoed = true;
                 }
             }
         }
