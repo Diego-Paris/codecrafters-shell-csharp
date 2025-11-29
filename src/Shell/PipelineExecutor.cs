@@ -19,9 +19,11 @@ public class PipelineExecutor
         if (segments.Count == 0) return 0;
         if (segments.Count == 1) return 0;
 
-        var buffers = new List<StringWriter?>();
+        var buffers = new List<StringWriter>();
         var processes = new List<Process>();
         var tasks = new List<Task<int>>();
+        StringWriter? previousBuffer = null;
+        Process? previousProcess = null;
 
         try
         {
@@ -38,10 +40,17 @@ public class PipelineExecutor
                 if (isBuiltin)
                 {
                     TextReader inputReader;
-                    if (i > 0 && buffers[i - 1] != null)
+                    if (i > 0)
                     {
-                        var previousOutput = buffers[i - 1]!.ToString();
-                        inputReader = new StringReader(previousOutput);
+                        if (previousBuffer != null)
+                        {
+                            var previousOutput = previousBuffer.ToString();
+                            inputReader = new StringReader(previousOutput);
+                        }
+                        else
+                        {
+                            inputReader = _ctx.In;
+                        }
                     }
                     else
                     {
@@ -49,13 +58,13 @@ public class PipelineExecutor
                     }
 
                     TextWriter outputWriter;
-                    StringWriter? buffer = null;
+                    StringWriter? currentBuffer = null;
 
                     if (i < segments.Count - 1)
                     {
-                        buffer = new StringWriter();
-                        outputWriter = buffer;
-                        buffers.Add(buffer);
+                        currentBuffer = new StringWriter();
+                        outputWriter = currentBuffer;
+                        buffers.Add(currentBuffer);
                     }
                     else
                     {
@@ -96,6 +105,8 @@ public class PipelineExecutor
                     });
 
                     tasks.Add(task);
+                    previousBuffer = currentBuffer;
+                    previousProcess = null;
                 }
                 else
                 {
@@ -138,22 +149,20 @@ public class PipelineExecutor
 
                     if (i > 0)
                     {
-                        if (buffers.Count > 0 && buffers[i - 1] != null)
+                        if (previousBuffer != null)
                         {
-                            var previousOutput = buffers[i - 1]!.ToString();
+                            Task.WaitAll(tasks.ToArray());
+                            var previousOutput = previousBuffer.ToString();
                             WriteToProcessInputAsync(previousOutput, process.StandardInput);
                         }
-                        else if (processes.Count > 1)
+                        else if (previousProcess != null)
                         {
-                            var previousProcess = processes[processes.Count - 2];
                             CopyStreamAsync(previousProcess.StandardOutput, process.StandardInput);
                         }
                     }
 
-                    if (i < segments.Count - 1)
-                    {
-                        buffers.Add(null);
-                    }
+                    previousProcess = process;
+                    previousBuffer = null;
                 }
             }
 
@@ -194,7 +203,7 @@ public class PipelineExecutor
 
             foreach (var buffer in buffers)
             {
-                buffer?.Dispose();
+                buffer.Dispose();
             }
         }
     }
@@ -225,7 +234,7 @@ public class PipelineExecutor
         }
     }
 
-    private static void CleanupAll(List<Process> processes, List<StringWriter?> buffers)
+    private static void CleanupAll(List<Process> processes, List<StringWriter> buffers)
     {
         foreach (var p in processes)
         {
@@ -246,7 +255,7 @@ public class PipelineExecutor
         {
             try
             {
-                buffer?.Dispose();
+                buffer.Dispose();
             }
             catch
             {
