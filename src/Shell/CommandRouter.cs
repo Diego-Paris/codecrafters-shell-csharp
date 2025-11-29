@@ -27,6 +27,13 @@ public sealed class CommandRouter
         var tokens = Tokenize(line);
         if (tokens.Count == 0) return 0;
 
+        if (tokens.Contains("|"))
+        {
+            var segments = PipelineParser.Parse(tokens);
+            var executor = new PipelineExecutor(_ctx);
+            return executor.Execute(segments);
+        }
+
         var redirectionInfo = RedirectionParser.Parse(tokens);
         if (redirectionInfo.CommandParts.Length == 0) return 0;
 
@@ -149,7 +156,17 @@ public sealed class CommandRouter
                 continue;
             }
 
-            if (!inDoubleQuotes && !inSingleQuotes && char.IsWhiteSpace(ch))
+            if (!inDoubleQuotes && !inSingleQuotes && ch == '|')
+            {
+                if (cur.Length > 0 || hadQuotes)
+                {
+                    list.Add(cur.ToString());
+                    cur.Clear();
+                    hadQuotes = false;
+                }
+                list.Add("|");
+            }
+            else if (!inDoubleQuotes && !inSingleQuotes && char.IsWhiteSpace(ch))
             {
                 if (cur.Length > 0 || hadQuotes)
                 {
