@@ -17,17 +17,21 @@ public sealed class CustomInputHandler : IInputHandler
         Console.Write(prompt);
         Console.Out.Flush();
 
+        Console.Error.WriteLine($"[DEBUG] ReadInput called, IsInputRedirected={Console.IsInputRedirected}");
+
         var buffer = new StringBuilder();
         var isInteractive = !Console.IsInputRedirected;
         var hasEchoed = false;
 
         while (true)
         {
+            Console.Error.WriteLine($"[DEBUG] Waiting for input, buffer='{buffer}'");
             int charCode;
             if (isInteractive && Console.KeyAvailable)
             {
                 var key = Console.ReadKey(intercept: true);
                 charCode = key.KeyChar;
+                Console.Error.WriteLine($"[DEBUG] Read char via ReadKey: '{(char)charCode}' (0x{charCode:X2})");
 
                 if (key.Key == ConsoleKey.Enter)
                 {
@@ -51,6 +55,7 @@ public sealed class CustomInputHandler : IInputHandler
             else
             {
                 charCode = Console.Read();
+                Console.Error.WriteLine($"[DEBUG] Read char via Console.Read: '{(char)charCode}' (0x{charCode:X2})");
                 if (charCode == -1)
                 {
                     return null;
@@ -58,6 +63,7 @@ public sealed class CustomInputHandler : IInputHandler
             }
 
             char ch = (char)charCode;
+            Console.Error.WriteLine($"[DEBUG] Processing char: '{ch}' (0x{(int)ch:X2})");
 
             if (ch == '\n')
             {
