@@ -2,8 +2,17 @@ using MiniShell.Models;
 
 namespace MiniShell.Parsing;
 
+/// <summary>
+/// Parses shell command tokens to extract and process redirection operators (>, >>, 2>, 2>>).
+/// </summary>
 public static class RedirectionParser
 {
+    /// <summary>
+    /// Parses tokens to separate command parts from redirection configuration.
+    /// When multiple redirections for the same stream are specified, the last one wins.
+    /// </summary>
+    /// <param name="tokens">The tokenized command line.</param>
+    /// <returns>Parsed redirection information with command parts and file redirections.</returns>
     public static RedirectionInfo Parse(IReadOnlyList<string> tokens)
     {
         string? stdoutFile = null;

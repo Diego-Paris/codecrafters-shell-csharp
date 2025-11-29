@@ -4,12 +4,24 @@ using MiniShell.Runtime;
 
 namespace MiniShell;
 
+/// <summary>
+/// Routes shell commands to their handlers, managing tokenization, redirection parsing, and command dispatch.
+/// </summary>
 public sealed class CommandRouter
 {
     private readonly IShellContext _ctx;
 
+    /// <summary>
+    /// Initializes a new command router with the specified shell context.
+    /// </summary>
+    /// <param name="ctx">The shell context providing commands and I/O streams.</param>
     public CommandRouter(IShellContext ctx) => _ctx = ctx;
 
+    /// <summary>
+    /// Parses and executes a command line, handling redirection and command dispatch.
+    /// </summary>
+    /// <param name="line">The raw command line input from the user.</param>
+    /// <returns>Exit code from the executed command.</returns>
     public int Route(string line)
     {
         var tokens = Tokenize(line);
@@ -38,6 +50,13 @@ public sealed class CommandRouter
         return ExecuteCommand(name, redirectionInfo.CommandParts, _ctx);
     }
 
+    /// <summary>
+    /// Executes a command by name, dispatching to built-in handlers or the external command handler.
+    /// </summary>
+    /// <param name="name">The command name to execute.</param>
+    /// <param name="commandParts">The full command line parts including the command name.</param>
+    /// <param name="context">The shell context (potentially redirected) to use for execution.</param>
+    /// <returns>Exit code from the command.</returns>
     private int ExecuteCommand(string name, string[] commandParts, IShellContext context)
     {
         if (context.Commands.TryGetValue(name, out var cmd))
@@ -54,6 +73,12 @@ public sealed class CommandRouter
         return 127;
     }
 
+    /// <summary>
+    /// Tokenizes a command line, handling quotes, escapes, and whitespace to produce shell syntax tokens.
+    /// Supports single quotes (no escapes), double quotes (limited escapes), and backslash escaping.
+    /// </summary>
+    /// <param name="input">The raw command line to tokenize.</param>
+    /// <returns>List of tokens extracted from the input.</returns>
     internal static List<string> Tokenize(string input)
     {
         var list = new List<string>();

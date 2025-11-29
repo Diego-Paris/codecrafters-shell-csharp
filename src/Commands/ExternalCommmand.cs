@@ -3,11 +3,28 @@ using System.Diagnostics;
 
 namespace MiniShell.Commands;
 
+/// <summary>
+/// Launches external programs as child processes, handling platform-specific execution (Windows batch scripts, argument quoting).
+/// </summary>
 public class ExternalCommand : ICommand
 {
+    /// <summary>
+    /// Gets the command name used for shell invocation.
+    /// </summary>
     public string Name => "external";
+
+    /// <summary>
+    /// Gets a human-readable description of what the command does.
+    /// </summary>
     public string Description => "Runs external programs";
 
+    /// <summary>
+    /// Executes an external program by resolving its path and launching it as a child process.
+    /// Handles Windows batch scripts specially by invoking cmd.exe.
+    /// </summary>
+    /// <param name="args">External command name and its arguments.</param>
+    /// <param name="ctx">Shell execution context for path resolution and I/O.</param>
+    /// <returns>Exit code from the external process, or 1/127 for errors.</returns>
     public int Execute(string[] args, IShellContext ctx)
     {
         if (args.Length == 0)
@@ -77,6 +94,11 @@ public class ExternalCommand : ICommand
         }
     }
 
+    /// <summary>
+    /// Quotes an argument if it contains whitespace or quotes, ensuring proper shell argument passing.
+    /// </summary>
+    /// <param name="arg">The argument to potentially quote.</param>
+    /// <returns>Quoted argument if needed, original argument otherwise.</returns>
     private static string QuoteIfNeeded(string arg)
     {
         if (string.IsNullOrEmpty(arg)) return "\"\"";

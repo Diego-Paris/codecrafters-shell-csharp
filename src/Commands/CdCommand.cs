@@ -2,10 +2,28 @@ using MiniShell.Abstractions;
 
 namespace MiniShell.Commands;
 
+/// <summary>
+/// Implements the cd command for changing the shell's working directory.
+/// Supports home directory expansion (~) and relative path navigation.
+/// </summary>
 public sealed class CdCommand : ICommand
 {
+    /// <summary>
+    /// Gets the command name used for shell invocation.
+    /// </summary>
     public string Name => "cd";
+
+    /// <summary>
+    /// Gets a human-readable description of what the command does.
+    /// </summary>
     public string Description => "Change current working directory";
+
+    /// <summary>
+    /// Executes the cd command to change the process working directory.
+    /// </summary>
+    /// <param name="args">Command arguments containing the target directory path.</param>
+    /// <param name="ctx">Shell execution context for error output.</param>
+    /// <returns>Exit code (0 for success, 1 for errors).</returns>
     public int Execute(string[] args, IShellContext ctx)
     {
         if (args.Length == 0)
@@ -34,6 +52,11 @@ public sealed class CdCommand : ICommand
         }
     }
 
+    /// <summary>
+    /// Expands special path syntax (~ for home, relative paths) to absolute paths for directory navigation.
+    /// </summary>
+    /// <param name="path">The path to expand.</param>
+    /// <returns>Fully qualified absolute path.</returns>
     private static string ExpandPath(string path)
     {
         // Handle home directory expansion

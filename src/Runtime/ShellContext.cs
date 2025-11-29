@@ -2,8 +2,16 @@
 
 namespace MiniShell.Runtime;
 
+/// <summary>
+/// Concrete implementation of shell execution context, providing access to registered commands and standard I/O streams.
+/// </summary>
 public sealed class ShellContext : IShellContext
 {
+    /// <summary>
+    /// Initializes a new shell context, building the command registry and wiring up standard console streams.
+    /// </summary>
+    /// <param name="commands">Collection of commands to register, indexed by their names.</param>
+    /// <param name="resolver">Path resolver for locating external executables.</param>
     public ShellContext(IEnumerable<ICommand> commands, IPathResolver resolver)
     {
         Commands = commands.ToDictionary(c => c.Name, StringComparer.Ordinal);
@@ -13,10 +21,28 @@ public sealed class ShellContext : IShellContext
         Err = Console.Error;
     }
 
+    /// <summary>
+    /// Gets the registry of available commands indexed by their names.
+    /// </summary>
     public IReadOnlyDictionary<string, ICommand> Commands { get; }
+
+    /// <summary>
+    /// Gets the standard input stream for reading user input.
+    /// </summary>
     public TextReader In { get; }
+
+    /// <summary>
+    /// Gets the standard output stream for writing command results.
+    /// </summary>
     public TextWriter Out { get; }
 
+    /// <summary>
+    /// Gets the standard error stream for writing error messages and diagnostics.
+    /// </summary>
     public TextWriter Err { get; }
+
+    /// <summary>
+    /// Gets the path resolver for locating executable files in the system PATH.
+    /// </summary>
     public IPathResolver PathResolver { get; }
 }

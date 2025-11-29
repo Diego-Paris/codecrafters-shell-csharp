@@ -1,3 +1,7 @@
+/// <summary>
+/// Application entry point that bootstraps the dependency injection container and starts the shell REPL.
+/// Registers all built-in commands, infrastructure services, and the shell orchestrator.
+/// </summary>
 using Microsoft.Extensions.DependencyInjection;
 using MiniShell;
 using MiniShell.Abstractions;
