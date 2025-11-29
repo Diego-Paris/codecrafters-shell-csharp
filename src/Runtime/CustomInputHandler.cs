@@ -71,11 +71,14 @@ public sealed class CustomInputHandler : IInputHandler
             else if (ch == '\t')
             {
                 var currentText = buffer.ToString();
+                Console.Error.WriteLine($"[DEBUG] TAB pressed, buffer='{currentText}', hasEchoed={hasEchoed}, isInteractive={isInteractive}");
                 var completions = _completionProvider.GetCompletions(currentText).ToList();
+                Console.Error.WriteLine($"[DEBUG] Found {completions.Count} completions: [{string.Join(", ", completions)}]");
 
                 if (completions.Count > 0)
                 {
                     var completion = completions[0];
+                    Console.Error.WriteLine($"[DEBUG] Using completion: '{completion}'");
 
                     if (isInteractive && hasEchoed)
                     {
@@ -89,12 +92,14 @@ public sealed class CustomInputHandler : IInputHandler
                     buffer.Append(completion);
                     buffer.Append(' ');
 
+                    Console.Error.WriteLine($"[DEBUG] Writing to stdout: '{completion} '");
                     Console.Write($"{completion} ");
                     Console.Out.Flush();
                     hasEchoed = true;
                 }
                 else if (!hasEchoed)
                 {
+                    Console.Error.WriteLine($"[DEBUG] No completions, writing current text + space");
                     Console.Write(currentText);
                     Console.Write(" ");
                     Console.Out.Flush();
