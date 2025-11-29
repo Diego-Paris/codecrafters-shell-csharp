@@ -53,12 +53,12 @@ Or use the provided script:
 
 **Demo commands:**
 ```sh
-# Type 'ec' then press TAB (should complete to 'echo ')
-# Type 'e' then press TAB twice (should show all commands starting with 'e')
-# Type 'pw' then press TAB (should complete to 'pwd ')
+# Type 'ech' then press TAB (completes to 'echo ')
+# Type 'his' then press TAB (completes to 'history ')
+# Type 'ca' then press TAB twice (shows 'cat', 'cal', 'calculator', etc.)
 ```
 
-**What's interesting:** Uses a Trie data structure for O(m) prefix lookup where m is the prefix length. Double-tab shows all matches, intelligently completes common prefixes.
+**What's interesting:** Uses a Trie data structure for O(m) prefix lookup where m is the prefix length. Single TAB attempts completion, double TAB shows all matching commands. Intelligently handles both unique matches and multiple candidates.
 
 ### 2. Command History with Arrow Keys
 
