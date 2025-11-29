@@ -18,7 +18,7 @@ services.AddSingleton<IShellContext, ShellContext>();
 // tab completion
 services.AddSingleton<ICompletionTrie, CompletionTrie>();
 services.AddSingleton<ICompletionProvider, CommandCompletionProvider>();
-services.AddSingleton<IInputHandler, ReadLineInputHandler>();
+services.AddSingleton<IInputHandler, CustomInputHandler>();
 
 // commands
 services.AddSingleton<ICommand, CdCommand>();
