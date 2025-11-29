@@ -3,6 +3,9 @@ using MiniShell.Abstractions;
 
 namespace MiniShell.Runtime;
 
+/// <summary>
+/// Custom input handler that provides readline-style features including tab completion, command history navigation, and interactive editing.
+/// </summary>
 public sealed class CustomInputHandler : IInputHandler
 {
     private readonly ICompletionProvider _completionProvider;

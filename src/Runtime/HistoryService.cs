@@ -2,6 +2,9 @@ using MiniShell.Abstractions;
 
 namespace MiniShell.Runtime;
 
+/// <summary>
+/// Manages persistent command history with support for loading from and saving to HISTFILE.
+/// </summary>
 public sealed class HistoryService : IHistoryService
 {
     private readonly IShellContext _context;
@@ -11,6 +14,9 @@ public sealed class HistoryService : IHistoryService
         _context = context;
     }
 
+    /// <summary>
+    /// Loads command history from the file specified by the HISTFILE environment variable.
+    /// </summary>
     public void LoadFromFile()
     {
         var histFile = Environment.GetEnvironmentVariable("HISTFILE");
@@ -29,6 +35,9 @@ public sealed class HistoryService : IHistoryService
         }
     }
 
+    /// <summary>
+    /// Saves the entire command history to the file specified by the HISTFILE environment variable.
+    /// </summary>
     public void SaveToFile()
     {
         var histFile = Environment.GetEnvironmentVariable("HISTFILE");
@@ -41,6 +50,9 @@ public sealed class HistoryService : IHistoryService
         File.WriteAllLines(histFile, _context.CommandHistory);
     }
 
+    /// <summary>
+    /// Appends only new commands (since the last append) to the HISTFILE, implementing incremental saves.
+    /// </summary>
     public void AppendNewCommandsToFile()
     {
         var histFile = Environment.GetEnvironmentVariable("HISTFILE");
