@@ -21,10 +21,11 @@ public sealed class ExitCommand : ICommand
     /// Executes the exit command to terminate the shell process.
     /// </summary>
     /// <param name="args">Optional exit code as first argument (defaults to 0).</param>
-    /// <param name="ctx">Shell execution context (unused but required by interface).</param>
+    /// <param name="ctx">Shell execution context used to save history before exit.</param>
     /// <returns>The exit code (though Environment.Exit prevents return).</returns>
     public int Execute(string[] args, IShellContext ctx)
     {
+        ctx.SaveHistoryToFile();
         var code = args.Length > 0 && int.TryParse(args[0], out var c) ? c : 0;
         Environment.Exit(code);
         return code;
