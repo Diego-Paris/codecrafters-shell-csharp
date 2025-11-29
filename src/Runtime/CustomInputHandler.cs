@@ -54,7 +54,25 @@ public sealed class CustomInputHandler : IInputHandler
                 }
                 else if (completions.Count > 1)
                 {
-                    if (lastTabWasMultiMatch && lastPrefix == prefix)
+                    var commonPrefix = GetLongestCommonPrefix(completions);
+                    var remaining = commonPrefix.Substring(prefix.Length);
+
+                    if (remaining.Length > 0)
+                    {
+                        _console.Write(remaining);
+                        buffer.Append(remaining);
+
+                        var newCompletions = _completionProvider.GetCompletions(buffer.ToString()).ToList();
+                        if (newCompletions.Count == 1)
+                        {
+                            _console.Write(" ");
+                            buffer.Append(' ');
+                        }
+
+                        lastTabWasMultiMatch = false;
+                        lastPrefix = string.Empty;
+                    }
+                    else if (lastTabWasMultiMatch && lastPrefix == prefix)
                     {
                         _console.WriteLine();
                         _console.Write(string.Join("  ", completions.OrderBy(c => c)));
@@ -93,5 +111,25 @@ public sealed class CustomInputHandler : IInputHandler
                 lastPrefix = string.Empty;
             }
         }
+    }
+
+    private static string GetLongestCommonPrefix(List<string> strings)
+    {
+        if (strings.Count == 0) return string.Empty;
+        if (strings.Count == 1) return strings[0];
+
+        var first = strings[0];
+        var minLength = strings.Min(s => s.Length);
+
+        for (int i = 0; i < minLength; i++)
+        {
+            var currentChar = first[i];
+            if (strings.Any(s => s[i] != currentChar))
+            {
+                return first.Substring(0, i);
+            }
+        }
+
+        return first.Substring(0, minLength);
     }
 }

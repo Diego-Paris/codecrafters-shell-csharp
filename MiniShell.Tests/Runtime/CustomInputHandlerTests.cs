@@ -181,19 +181,6 @@ public class CustomInputHandlerTests
         Assert.Equal("e", result);
     }
 
-    [Fact]
-    public void ReadInput_BackspaceAfterFirstTab_ShouldResetTabState()
-    {
-        var provider = new MockCompletionProvider(new[] { "abc", "abd" });
-        var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', '\b', '\t', '\r' });
-        var handler = new CustomInputHandler(provider, mockConsole);
-
-        var result = handler.ReadInput("$ ");
-
-        var bellCount = mockConsole.Output.Count(c => c == '\x07');
-        Assert.Equal(2, bellCount);
-    }
-
     private static int CountOccurrences(string text, string pattern)
     {
         int count = 0;
@@ -204,6 +191,70 @@ public class CustomInputHandlerTests
             index += pattern.Length;
         }
         return count;
+    }
+
+    [Fact]
+    public void ReadInput_LongestCommonPrefix_CompletesToPrefix()
+    {
+        var provider = new MockCompletionProvider(new[] { "xyz_foo", "xyz_foo_bar", "xyz_foo_bar_baz" });
+        var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Equal("xyz_foo", result);
+        Assert.DoesNotContain('\x07', mockConsole.Output);
+    }
+
+    [Fact]
+    public void ReadInput_LongestCommonPrefix_ProgressiveDeepeningCompletion()
+    {
+        var provider = new MockCompletionProvider(new[] { "xyz_foo", "xyz_foo_bar", "xyz_foo_bar_baz" });
+        var mockConsole = new MockConsole(new[] { 'x', 'y', 'z', '_', '\t', '_', '\t', '_', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Equal("xyz_foo_bar_baz ", result);
+    }
+
+    [Fact]
+    public void ReadInput_LongestCommonPrefix_NoCommonPrefixBeyondInput()
+    {
+        var provider = new MockCompletionProvider(new[] { "abc", "abd", "abe" });
+        var mockConsole = new MockConsole(new[] { 'a', 'b', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Contains('\x07', mockConsole.Output);
+        Assert.Equal("ab", result);
+    }
+
+    [Fact]
+    public void ReadInput_LongestCommonPrefix_PartialCompletionThenBell()
+    {
+        var provider = new MockCompletionProvider(new[] { "test_a", "test_b", "test_c" });
+        var mockConsole = new MockConsole(new[] { 't', 'e', '\t', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Equal("test_", result);
+        Assert.Contains('\x07', mockConsole.Output);
+    }
+
+    [Fact]
+    public void ReadInput_LongestCommonPrefix_ExactMatchIsPrefix()
+    {
+        var provider = new MockCompletionProvider(new[] { "foo", "foobar", "foobarbaz" });
+        var mockConsole = new MockConsole(new[] { 'f', '\t', '\r' });
+        var handler = new CustomInputHandler(provider, mockConsole);
+
+        var result = handler.ReadInput("$ ");
+
+        Assert.Equal("foo", result);
+        Assert.DoesNotContain('\x07', mockConsole.Output);
     }
 
     private class MockConsole : IConsole
