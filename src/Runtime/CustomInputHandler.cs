@@ -36,13 +36,16 @@ public sealed class CustomInputHandler : IInputHandler
             }
             else if (ch == '\t')
             {
+                Console.Error.WriteLine($"[DEBUG] TAB received! buffer='{buffer}'");
                 var currentText = buffer.ToString();
                 var completions = _completionProvider.GetCompletions(currentText).ToList();
+                Console.Error.WriteLine($"[DEBUG] Completions: {string.Join(", ", completions)}");
 
                 if (completions.Count > 0)
                 {
                     var completion = completions[0];
                     var remaining = completion.Substring(currentText.Length);
+                    Console.Error.WriteLine($"[DEBUG] Appending: '{remaining} '");
 
                     buffer.Clear();
                     buffer.Append(completion);
