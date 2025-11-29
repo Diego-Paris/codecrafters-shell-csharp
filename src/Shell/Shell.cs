@@ -1,4 +1,6 @@
-﻿namespace MiniShell;
+﻿using MiniShell.Abstractions;
+
+namespace MiniShell;
 
 /// <summary>
 /// Orchestrates the shell's Read-Eval-Print Loop (REPL), managing user interaction and command execution.
@@ -6,24 +8,29 @@
 public sealed class Shell
 {
     private readonly CommandRouter _router;
+    private readonly IInputHandler _inputHandler;
 
     /// <summary>
-    /// Initializes a new shell instance with the specified command router.
+    /// Initializes a new shell instance with the specified command router and input handler.
     /// </summary>
     /// <param name="router">The router responsible for parsing and dispatching commands.</param>
-    public Shell(CommandRouter router) => _router = router;
+    /// <param name="inputHandler">The input handler for reading user input with tab completion support.</param>
+    public Shell(CommandRouter router, IInputHandler inputHandler)
+    {
+        _router = router;
+        _inputHandler = inputHandler;
+    }
 
     /// <summary>
     /// Runs the interactive shell loop, reading user input and routing commands until termination.
     /// </summary>
     /// <returns>Exit code (0 for normal termination, non-zero for errors).</returns>
-    public async Task<int> RunAsync()
+    public Task<int> RunAsync()
     {
         while (true)
         {
-            Console.Write("$ ");
-            var line = await Console.In.ReadLineAsync();
-            if (line is null) return 0;
+            var line = _inputHandler.ReadInput("$ ");
+            if (line is null) return Task.FromResult(0);
             _router.Route(line);
         }
     }

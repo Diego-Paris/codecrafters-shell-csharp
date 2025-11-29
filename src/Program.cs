@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MiniShell;
 using MiniShell.Abstractions;
 using MiniShell.Commands;
+using MiniShell.DataStructures;
 using MiniShell.Runtime;
 
 var services = new ServiceCollection();
@@ -13,6 +14,11 @@ var services = new ServiceCollection();
 // infrastructure
 services.AddSingleton<IPathResolver, PathResolver>();
 services.AddSingleton<IShellContext, ShellContext>();
+
+// tab completion
+services.AddSingleton<ICompletionTrie, CompletionTrie>();
+services.AddSingleton<ICompletionProvider, CommandCompletionProvider>();
+services.AddSingleton<IInputHandler, ReadLineInputHandler>();
 
 // commands
 services.AddSingleton<ICommand, CdCommand>();
