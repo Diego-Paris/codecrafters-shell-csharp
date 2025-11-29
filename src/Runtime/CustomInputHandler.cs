@@ -47,17 +47,19 @@ public sealed class CustomInputHandler : IInputHandler
                         var completion = completions[0];
                         var remaining = completion.Substring(currentText.Length);
 
-                        for (int i = 0; i < buffer.Length; i++)
+                        // Move cursor back to start of word
+                        for (int i = 0; i < currentText.Length; i++)
                         {
-                            Console.Write("\b \b");
+                            Console.Write("\b");
                         }
+
+                        // Write completion and space
+                        Console.Write($"{completion} ");
+                        Console.Out.Flush();
 
                         buffer.Clear();
                         buffer.Append(completion);
                         buffer.Append(' ');
-
-                        Console.Write($"{completion} ");
-                        Console.Out.Flush();
                     }
                 }
                 else if (ch == '\b' || ch == (char)127) // Backspace or DEL
