@@ -183,12 +183,12 @@ public class TabCompletionIntegrationTests
     {
         var commands = new ICommand[]
         {
-            new Commands.EchoCommand(),
-            new Commands.ExitCommand(),
-            new Commands.CdCommand(),
-            new Commands.PwdCommand(),
-            new Commands.TypeCommand(),
-            new Commands.ExternalCommand()
+            new MiniShell.Commands.EchoCommand(),
+            new MiniShell.Commands.ExitCommand(),
+            new MiniShell.Commands.CdCommand(),
+            new MiniShell.Commands.PwdCommand(),
+            new MiniShell.Commands.TypeCommand(),
+            new MiniShell.Commands.ExternalCommand()
         };
 
         var pathResolver = new PathResolver();

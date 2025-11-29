@@ -250,12 +250,12 @@ public class CommandRouterTests : IDisposable
     {
         var commands = new ICommand[]
         {
-            new Commands.EchoCommand(),
-            new Commands.PwdCommand(),
-            new Commands.CdCommand(),
-            new Commands.TypeCommand(),
-            new Commands.ExitCommand(),
-            new Commands.ExternalCommand()
+            new MiniShell.Commands.EchoCommand(),
+            new MiniShell.Commands.PwdCommand(),
+            new MiniShell.Commands.CdCommand(),
+            new MiniShell.Commands.TypeCommand(),
+            new MiniShell.Commands.ExitCommand(),
+            new MiniShell.Commands.ExternalCommand()
         };
 
         var pathResolver = new PathResolver();

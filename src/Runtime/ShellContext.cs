@@ -13,12 +13,30 @@ public sealed class ShellContext : IShellContext
     /// <param name="commands">Collection of commands to register, indexed by their names.</param>
     /// <param name="resolver">Path resolver for locating external executables.</param>
     public ShellContext(IEnumerable<ICommand> commands, IPathResolver resolver)
+        : this(commands, resolver, Console.In, Console.Out, Console.Error)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new shell context with custom I/O streams for testing.
+    /// </summary>
+    /// <param name="commands">Collection of commands to register, indexed by their names.</param>
+    /// <param name="resolver">Path resolver for locating external executables.</param>
+    /// <param name="input">Input stream.</param>
+    /// <param name="output">Output stream.</param>
+    /// <param name="error">Error stream.</param>
+    public ShellContext(
+        IEnumerable<ICommand> commands,
+        IPathResolver resolver,
+        TextReader input,
+        TextWriter output,
+        TextWriter error)
     {
         Commands = commands.ToDictionary(c => c.Name, StringComparer.Ordinal);
         PathResolver = resolver;
-        In = Console.In;
-        Out = Console.Out;
-        Err = Console.Error;
+        In = input;
+        Out = output;
+        Err = error;
     }
 
     /// <summary>
