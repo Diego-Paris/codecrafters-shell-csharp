@@ -91,7 +91,9 @@ Hello, World!
 
 ## Application Flow
 
-![Application Flow SVG](assets/application-flow.svg)
+![Application Flow](assets/application-flow.svg)
+
+[View the detailed mermaid diagram](assets/application-flow-diagram.md)
 
 ## Project Structure
 
