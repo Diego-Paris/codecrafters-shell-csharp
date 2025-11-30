@@ -91,7 +91,6 @@ Hello, World!
 
 ## Application Flow
 
-### SVG Version
 ![Application Flow SVG](assets/application-flow.svg)
 
 ## Project Structure

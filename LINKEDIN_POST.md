@@ -49,7 +49,7 @@ Also implemented:
 - Persistent command history with HISTFILE support
 - I/O redirection with automatic directory creation
 - Cross-platform PATH resolution (Windows PATHEXT vs Unix permissions)
-- DI architecture - every command is a registered service
+- DI architecture where every command is a registered service
 
 The codebase shows how dependency injection works in unconventional places. Most shells use globals. This one doesn't.
 

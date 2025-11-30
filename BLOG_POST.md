@@ -76,7 +76,7 @@ public IEnumerable<string> GetCompletions(string prefix)
 }
 ```
 
-This works. It's also O(n) where n is the number of commands. On my system, there are 2000+ executables in PATH. Every tab press would iterate through all of them. Not great, Bob.
+This works. It's also O(n) where n is the number of commands. On my system, there are 2000+ executables in PATH. Every tab press would iterate through all of them. That's rough.
 
 ### The Trie Solution
 
