@@ -49,80 +49,81 @@ Or use the provided script:
 
 ### 1. Tab Completion with Trie Matching
 
-![Tab Completion Demo](assets/tab-completion.gif)
-
-**Demo commands:**
-```sh
-# Type 'ech' then press TAB (completes to 'echo ')
-# Type 'his' then press TAB (completes to 'history ')
-# Type 'ca' then press TAB twice (shows 'cat', 'cal', 'calculator', etc.)
-```
+![Tab Completion Demo](assets/tab-completion-demo.gif)
 
 **What's interesting:** Uses a Trie data structure for O(m) prefix lookup where m is the prefix length. Single TAB attempts completion, double TAB shows all matching commands. Intelligently handles both unique matches and multiple candidates.
 
 ### 2. Command History with Arrow Keys
 
-![Command History Demo](assets/command-history.gif)
-
-**Demo commands:**
 ```sh
-export HISTFILE=~/.minishell_history
-echo "first command"
-echo "second command"
+$ echo "first command"
+first command
+$ echo "second command"
+second command
 # Press UP arrow (shows "second command")
 # Press UP again (shows "first command")
 # Press DOWN (shows "second command")
-# Exit and restart shell - history persists
+$ history -w ~/.minishell_history
+$ exit
+# Restart shell...
+$ history -r ~/.minishell_history
+$ history
+    1  echo "first command"
+    2  echo "second command"
 ```
 
-**What's interesting:** Full readline-style navigation. History persists across sessions via HISTFILE. Supports `history`, `history -w` (write), and `history -a` (append).
+**What's interesting:** Full readline-style navigation. History persists across sessions with `-w` (write), `-r` (read), and `-a` (append) flags. Supports up/down arrow navigation through command history.
 
 ### 3. I/O Redirection with Auto-Directory Creation
 
-![I/O Redirection Demo](assets/io-redirection.gif)
-
-**Demo commands:**
 ```sh
 # stdout redirection
-echo "hello world" > output.txt
-cat output.txt
+$ echo "hello world" > output.txt
+$ cat output.txt
+hello world
 
 # append mode
-echo "line 2" >> output.txt
-cat output.txt
+$ echo "line 2" >> output.txt
+$ cat output.txt
+hello world
+line 2
 
 # stderr redirection
-ls /nonexistent 2> errors.txt
-cat errors.txt
+$ ls /nonexistent 2> errors.txt
+$ cat errors.txt
+ls: cannot access '/nonexistent': No such file or directory
 
 # automatic directory creation
-echo "test" > /tmp/deep/nested/path/file.txt
-cat /tmp/deep/nested/path/file.txt
+$ echo "test" > /tmp/deep/nested/path/file.txt
+$ cat /tmp/deep/nested/path/file.txt
+test
 ```
 
 **What's interesting:** Automatically creates parent directories. Proper resource cleanup with IDisposable pattern. Separate stdout/stderr redirection support.
 
 ### 4. Pipeline Execution
 
-![Pipeline Execution Demo](assets/pipeline-execution.gif)
-
-**Demo commands:**
 ```sh
-echo "hello world" | tr 'a-z' 'A-Z'
-cat file.txt | grep "pattern" | wc -l
+$ echo "hello world" | tr 'a-z' 'A-Z'
+HELLO WORLD
+
+$ cat file.txt | grep "pattern" | wc -l
+3
 ```
 
 **What's interesting:** Parser splits on `|` boundaries, executor wires up stdin/stdout between processes.
 
 ### 5. Cross-Platform PATH Resolution
 
-![PATH Resolution Demo](assets/path-resolution.gif)
-
-**Demo commands:**
 ```sh
-type echo      # shows built-in
-type cat       # shows path to executable
-type ls        # shows path (different on Windows vs Unix)
+$ type echo
+echo is a shell builtin
+
+$ type cat
+cat is /usr/bin/cat
+
+$ type ls
+ls is /usr/bin/ls
 
 # On Windows, resolves using PATHEXT (.exe, .cmd, .bat)
 # On Unix, checks execute permission
@@ -132,18 +133,32 @@ type ls        # shows path (different on Windows vs Unix)
 
 ### 6. Built-in Commands
 
-![Built-in Commands Demo](assets/builtin-commands.gif)
-
-**Demo commands:**
 ```sh
-pwd                    # print working directory
-cd /tmp               # change directory
-pwd                   # verify change
-echo hello world      # echo with args
-type cd               # shows 'cd is a shell builtin'
-greet                 # custom greeting command
-history               # show command history
-history -w            # write history to HISTFILE
+$ pwd
+/home/user
+
+$ cd /tmp
+$ pwd
+/tmp
+
+$ echo hello world
+hello world
+
+$ type cd
+cd is a shell builtin
+
+$ greet
+Welcome to MiniShell!
+
+$ history
+    1  pwd
+    2  cd /tmp
+    3  pwd
+    4  echo hello world
+    5  type cd
+    6  greet
+
+$ history -w ~/.minishell_history
 ```
 
 ## Architecture
