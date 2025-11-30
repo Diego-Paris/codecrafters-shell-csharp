@@ -43,7 +43,7 @@ Or use the provided script:
 
 ### Tab Completion
 
-![Tab Completion Demo](assets/tab-completion-demo.gif)
+![Tab Completion Demo](assets/tab-demo.gif)
 
 ### Command History
 
