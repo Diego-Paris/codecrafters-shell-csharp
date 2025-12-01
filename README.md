@@ -4,7 +4,7 @@
 
 A fully-featured POSIX-compliant shell built from scratch in C#/.NET, featuring advanced input handling, tab completion with trie-based prefix matching, persistent command history, I/O redirection, and pipeline support.
 
-**📖 [Read the technical deep dive on my blog!](#TODO)** Learn about the architecture decisions, implementation challenges, and lessons learned while building this shell.
+**📖 [Read the technical deep dive on my blog!](https://diegoparis.com/posts/building-a-shell-in-csharp/)** Learn about the architecture decisions, implementation challenges, and lessons learned while building this shell.
 
 ## Key Features
 
